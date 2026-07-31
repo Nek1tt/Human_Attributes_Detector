@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from pathlib import Path
 from threading import Lock
-from typing import Mapping
+from collections.abc import Mapping
 
 import torch
 from PIL import Image
@@ -23,7 +23,7 @@ class ResNetEnsemble(nn.Module):
 
     def __init__(self) -> None:
         super().__init__()
-        for index, (attribute, labels) in enumerate(ATTRIBUTE_LABELS_RU.items()):
+        for index, labels in enumerate(ATTRIBUTE_LABELS_RU.values()):
             backbone = models.resnet50(weights=None)
             setattr(self, f"resnet_{index}", nn.Sequential(*list(backbone.children())[:-1]))
             setattr(

@@ -1,8 +1,8 @@
 """Authenticated, bounded FastAPI job API."""
 
 import logging
-from contextlib import asynccontextmanager
 from concurrent.futures import ThreadPoolExecutor
+from contextlib import asynccontextmanager
 from dataclasses import asdict, dataclass
 from enum import StrEnum
 from pathlib import Path

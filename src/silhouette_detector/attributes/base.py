@@ -3,7 +3,7 @@
 from __future__ import annotations
 
 from abc import ABC, abstractmethod
-from typing import Mapping
+from collections.abc import Mapping
 
 from PIL import Image
 
@@ -24,6 +24,7 @@ class AttributeBackend(ABC):
 
     def close(self) -> None:
         """Release optional backend resources."""
+        return None
 
     @staticmethod
     def normalize(prediction: Mapping[str, str]) -> dict[str, str]:

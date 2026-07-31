@@ -2,7 +2,8 @@
 
 from __future__ import annotations
 
-from typing import Any, Iterable
+from collections.abc import Iterable
+from typing import Any
 
 
 def resolve_torch_device(requested: str, torch_module: Any | None = None) -> str:

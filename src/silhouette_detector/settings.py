@@ -71,7 +71,7 @@ class Settings:
         return self.data_dir / "outputs"
 
     @classmethod
-    def from_env(cls) -> "Settings":
+    def from_env(cls) -> Settings:
         root = Path(os.getenv("HAD_ROOT", str(_project_root()))).expanduser().resolve()
 
         def path_value(name: str, relative_default: str) -> Path:

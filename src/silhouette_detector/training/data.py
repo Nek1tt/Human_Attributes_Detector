@@ -9,6 +9,8 @@ from pathlib import Path
 import torch
 from torch.utils.data import Dataset, Subset
 
+# This RNG provides a reproducible dataset split; it is not used for security.
+random.Random(seed).shuffle(group_ids)  # noqa: S311
 
 class EmbeddingDataset(Dataset):
     def __init__(self, directory: Path) -> None:
