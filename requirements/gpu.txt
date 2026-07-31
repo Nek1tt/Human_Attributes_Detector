@@ -1,0 +1,3 @@
+-e .[api,gpu]
+torch>=2.4,<3
+torchvision>=0.19,<1

@@ -1,3 +1,4 @@
-#!/bin/env sh
+#!/usr/bin/env sh
+set -eu
 
-uvicorn silhouette_detector:detector.app --reload --port 8000 --host 0.0.0.0 && bash
+exec uvicorn silhouette_detector.app:create_app --factory --host 0.0.0.0 --port "${PORT:-8000}"

@@ -1,117 +1,28 @@
-FROM nvidia/cuda:12.0.0-cudnn8-runtime-ubuntu22.04
+FROM python:3.12-slim
 
-# Install system requirements
-RUN apt-get update && apt-get install -y \
-    wget \
-    python3-dev \
-    python3-pip \
-    build-essential \
-    libssl-dev \
-    libffi-dev \
-    ffmpeg \
-    libsm6 \
-    libxext6 \
-    && rm -rf /var/lib/apt/lists/*
+ENV PYTHONDONTWRITEBYTECODE=1 \
+    PYTHONUNBUFFERED=1 \
+    HAD_DATA_DIR=/app/var \
+    HAD_DEVICE=cpu
 
-# FFmpeg dependencies
-RUN apt-get update && apt-get -y install \
-    autoconf \
-    automake \
-    cmake \
-    git \
-    git-core \
-    libass-dev \
-    libfreetype6-dev \
-    libgnutls28-dev \
-    libmp3lame-dev \
-    libsdl2-dev \
-    libtool \
-    libva-dev \
-    libvdpau-dev \
-    libvorbis-dev \
-    libxcb1-dev \
-    libxcb-shm0-dev \
-    libxcb-xfixes0-dev \
-    meson \
-    ninja-build \
-    pkg-config \
-    texinfo \
-    yasm \
-    zlib1g-dev \
-    libunistring-dev \
-    && rm -rf /var/lib/apt/lists/*
+RUN apt-get update \
+    && apt-get install -y --no-install-recommends ffmpeg libglib2.0-0 libgl1 \
+    && rm -rf /var/lib/apt/lists/* \
+    && groupadd --system app \
+    && useradd --system --gid app --create-home app
 
-# FFmpeg requirements
-RUN apt-get update  && apt-get -y install \
-    libaom-dev \
-    libdav1d-dev \
-    libx264-dev \
-    libx265-dev \
-    libnuma-dev \
-    libvpx-dev \
-    libfdk-aac-dev \
-    libopus-dev \
-    libdav1d-dev \
-    && rm -rf /var/lib/apt/lists/*
+WORKDIR /app
+COPY pyproject.toml README.md ./
+COPY src ./src
+COPY SFSORT/SFSORT.py SFSORT/__init__.py SFSORT/LICENSE ./SFSORT/
+RUN pip install --no-cache-dir ".[api,cpu]"
 
-# Clone ffmpeg
-RUN git clone --depth 1 -b n7.0.1 https://github.com/FFmpeg/FFmpeg
-COPY ./install/h2645_parse.c /FFmpeg/libavcodec/h2645_parse.c
+RUN mkdir -p /app/models /app/var/uploads /app/var/outputs \
+    && chown -R app:app /app
+USER app
 
-# Set envs for ffmpeg
-ENV PATH="/FFmpeg/bin:$PATH"
-ENV PKG_CONFIG_PATH="/FFmpeg/ffmpeg_build/lib/pkgconfig"
-
-# Compile ffmpeg
-RUN /FFmpeg/configure \
-    --prefix="/FFmpeg/ffmpeg_build" \
-    --pkg-config-flags="--static" \
-    --extra-cflags="-I/FFmpeg/ffmpeg_build/include" \
-    --extra-ldflags="-L/FFmpeg/ffmpeg_build/lib" \
-    --extra-libs="-lpthread -lm" \
-    --ld="g++" \
-    --bindir="/FFmpeg/bin" \
-    --enable-gpl \
-    --enable-gnutls \
-    --enable-libaom \
-    --enable-libass \
-    --enable-libfdk-aac \
-    --enable-libfreetype \
-    --enable-libmp3lame \
-    --enable-libopus \
-    --enable-libdav1d \
-    --enable-libvorbis \
-    --enable-libvpx \
-    --enable-libx264 \
-    --enable-libx265 \
-    --enable-nonfree
-
-# Install ffmpeg
-ENV PATH="/FFmpeg/bin:$PATH"
-RUN make && \
-    make install && \
-    hash -r
-
-# Expose the Flask port
 EXPOSE 8000
+HEALTHCHECK --interval=30s --timeout=5s --start-period=10s --retries=3 \
+    CMD python -c "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=3)"
 
-# Set the workdir
-WORKDIR /detector-api
-
-# Copy BoxMot trackers
-COPY ./boxmot ./boxmot
-
-# Copy requirements
-COPY ./requirements.txt ./requirements.txt
-
-# Install requirements
-RUN pip3 install -r ./requirements.txt
-
-COPY ./models/yolov8s_576x1024_v2.onnx ./models/yolov8s_576x1024_v2.onnx
-COPY ./models/resnet_ens_11.19_e60_s0.782.pt ./models/resnet_ens_11.19_e60_s0.782.pt
-
-# Copy project
-COPY ./ ./
-
-# Run project
-ENTRYPOINT [ "bash", "run.sh"]
+CMD ["uvicorn", "silhouette_detector.app:create_app", "--factory", "--host", "0.0.0.0", "--port", "8000"]
