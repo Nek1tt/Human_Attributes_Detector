@@ -9,9 +9,6 @@ from pathlib import Path
 import torch
 from torch.utils.data import Dataset, Subset
 
-# This RNG provides a reproducible dataset split; it is not used for security.
-random.Random(seed).shuffle(group_ids)  # noqa: S311
-
 class EmbeddingDataset(Dataset):
     def __init__(self, directory: Path) -> None:
         self.files = sorted(directory.glob("*.pt"))
@@ -65,7 +62,9 @@ def grouped_split(dataset: EmbeddingDataset, validation_fraction: float = 0.2, s
     group_ids = sorted(groups)
     if len(group_ids) < 2:
         raise ValueError("At least two group_id values are required for a leakage-free split")
-    random.Random(seed).shuffle(group_ids)
+    
+    # This RNG provides a reproducible dataset split; it is not used for security.
+    random.Random(seed).shuffle(group_ids)  # noqa: S311
     validation_count = min(len(group_ids) - 1, max(1, round(len(group_ids) * validation_fraction)))
     validation_groups = set(group_ids[:validation_count])
     train_indices = [
