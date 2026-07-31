@@ -44,7 +44,8 @@ class SFSORTTracker:
             from SFSORT import SFSORT
         except ImportError as exc:
             raise RuntimeError(
-                "SFSORT is missing. Run: git submodule update --init --recursive"
+                "SFSORT or one of its dependencies is missing. "
+                "Install the project dependencies with: python -m pip install -e ."
             ) from exc
         self._tracker = SFSORT(default_sfsort_settings(width, height, fps))
 

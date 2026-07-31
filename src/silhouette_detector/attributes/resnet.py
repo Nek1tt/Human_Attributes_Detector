@@ -2,9 +2,9 @@
 
 from __future__ import annotations
 
+from collections.abc import Mapping
 from pathlib import Path
 from threading import Lock
-from collections.abc import Mapping
 
 import torch
 from PIL import Image

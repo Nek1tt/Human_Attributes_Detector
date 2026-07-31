@@ -9,6 +9,7 @@ from pathlib import Path
 import torch
 from torch.utils.data import Dataset, Subset
 
+
 class EmbeddingDataset(Dataset):
     def __init__(self, directory: Path) -> None:
         self.files = sorted(directory.glob("*.pt"))
