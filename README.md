@@ -93,10 +93,10 @@ CPU, но требует очень много RAM и практически н�
 
 ### Установка на NVIDIA GPU
 
-Сначала установите сборку PyTorch для вашей версии CUDA командой из официального селектора
-<https://pytorch.org/get-started/locally/>, затем:
+Для обычного GPU backend установите PyTorch и зависимости проекта:
 
 ```bash
+pip install torch==2.8.0 torchvision==0.23.0 --index-url https://download.pytorch.org/whl/cu128
 pip install -r requirements/gpu.txt
 ```
 
@@ -106,11 +106,16 @@ pip install -r requirements/gpu.txt
 pip install -r requirements/minicpm.txt
 ```
 
-Для старого INT4 snapshot используется актуальный GPTQModel вместо заброшенного локального fork:
+MiniCPM-o 2.6 INT4 требует специальную ветку AutoGPTQ и Transformers 4.44.2. На Windows
+полная установка в отдельное окружение выполняется из PowerShell одной командой:
 
-```bash
-pip install -r requirements/minicpm-int4.txt
+```powershell
+.\scripts\setup_minicpm_int4_windows.ps1
 ```
+
+Скрипт устанавливает PyTorch 2.8.0 + CUDA 12.8, фиксированные MiniCPM-зависимости, клонирует
+проверенный commit ветки `minicpmo`, исправляет устаревшие CUDA-вызовы и собирает расширения.
+Требуются Python 3.11, CUDA Toolkit 12.8 и Visual Studio 2022 Build Tools с C++ workload.
 
 Не устанавливайте одновременно `onnxruntime` и `onnxruntime-gpu` в одно окружение.
 

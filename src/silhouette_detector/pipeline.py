@@ -3,12 +3,14 @@
 from __future__ import annotations
 
 import json
-from collections.abc import Callable
+import os
 from dataclasses import asdict, dataclass, field
+from functools import lru_cache
 from pathlib import Path
+from typing import Callable
 
 import numpy as np
-from PIL import Image
+from PIL import Image, ImageDraw, ImageFont
 
 from .attribute_service import AttributeService
 from .attributes.labels import UNKNOWN_ATTRIBUTES
@@ -80,10 +82,29 @@ class FramePipeline:
         return results
 
 
+@lru_cache(maxsize=1)
+def _annotation_font() -> ImageFont.FreeTypeFont:
+    configured = os.getenv("HAD_FONT_PATH")
+    candidates = [
+        Path(configured).expanduser() if configured else None,
+        Path("C:/Windows/Fonts/arial.ttf"),
+        Path("C:/Windows/Fonts/segoeui.ttf"),
+        Path("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"),
+        Path("/usr/share/fonts/truetype/dejavu/DejaVuSans.ttf"),
+    ]
+    for candidate in candidates:
+        if candidate is not None and candidate.is_file():
+            return ImageFont.truetype(str(candidate), size=16)
+    raise RuntimeError(
+        "No Cyrillic TrueType font found. Set HAD_FONT_PATH to a .ttf font with Cyrillic glyphs"
+    )
+
+
 def draw_results(frame: np.ndarray, results: list[FrameResult]) -> np.ndarray:
     import cv2
 
     output = frame.copy()
+    text_items: list[tuple[tuple[int, int], str, tuple[int, int, int]]] = []
     for result in results:
         x1, y1, x2, y2 = result.box
         color = (37, 190, 90)
@@ -98,17 +119,19 @@ def draw_results(frame: np.ndarray, results: list[FrameResult]) -> np.ndarray:
         top = max(18, y1 - 8 - 18 * len(lines))
         for index, line in enumerate(lines):
             position = (max(0, x1), top + index * 18)
-            cv2.putText(
-                output,
-                line,
-                position,
-                cv2.FONT_HERSHEY_SIMPLEX,
-                0.48,
-                (255, 255, 255),
-                2,
-            )
-            cv2.putText(output, line, position, cv2.FONT_HERSHEY_SIMPLEX, 0.48, color, 1)
-    return output
+            text_items.append((position, line, color))
+
+    if not text_items:
+        return output
+
+    # OpenCV's built-in Hershey fonts do not contain Cyrillic glyphs.
+    image = Image.fromarray(cv2.cvtColor(output, cv2.COLOR_BGR2RGB))
+    draw = ImageDraw.Draw(image)
+    font = _annotation_font()
+    for position, line, bgr_color in text_items:
+        rgb_color = (bgr_color[2], bgr_color[1], bgr_color[0])
+        draw.text(position, line, font=font, fill=rgb_color, stroke_width=2, stroke_fill="white")
+    return cv2.cvtColor(np.asarray(image), cv2.COLOR_RGB2BGR)
 
 
 class VideoProcessor:

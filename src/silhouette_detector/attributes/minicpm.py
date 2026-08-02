@@ -53,6 +53,25 @@ def _move_to_device(value: Any, device: str) -> Any:
     return value
 
 
+def _is_gptq_snapshot(model_dir: Path) -> bool:
+    """Detect GPTQ from the snapshot metadata instead of a mutable directory name."""
+
+    config_path = model_dir / "config.json"
+    if not config_path.is_file():
+        raise FileNotFoundError(f"MiniCPM config not found: {config_path}")
+    try:
+        config = json.loads(config_path.read_text(encoding="utf-8"))
+    except json.JSONDecodeError as exc:
+        raise RuntimeError(f"MiniCPM config is not valid JSON: {config_path}") from exc
+    if not isinstance(config, Mapping):
+        raise RuntimeError(f"MiniCPM config must be a JSON object: {config_path}")
+
+    quantization_config = config.get("quantization_config")
+    return isinstance(quantization_config, Mapping) and (
+        str(quantization_config.get("quant_method", "")).lower() == "gptq"
+    )
+
+
 class MiniCPMEmbeddingExtractor:
     """Loads MiniCPM once from a verified local snapshot and extracts visual tokens."""
 
@@ -78,7 +97,8 @@ class MiniCPMEmbeddingExtractor:
             _verify_manifest(model_dir, manifest)
 
         self.device = resolve_torch_device(device)
-        if "int4" in model_dir.name.lower() and self.device == "cpu":
+        is_gptq = _is_gptq_snapshot(model_dir)
+        if is_gptq and self.device == "cpu":
             raise RuntimeError(
                 "The legacy MiniCPM INT4 checkpoint requires CUDA. For CPU use a full-precision "
                 "MiniCPM-o 2.6 snapshot or select the ResNet backend."
@@ -92,21 +112,37 @@ class MiniCPMEmbeddingExtractor:
         self.processor = AutoProcessor.from_pretrained(
             str(model_dir), trust_remote_code=True, local_files_only=True
         )
-        quantized = "int4" in model_dir.name.lower()
-        load_options: dict[str, Any] = {
-            "trust_remote_code": True,
-            "local_files_only": True,
-            "torch_dtype": dtype,
-            "low_cpu_mem_usage": True,
-        }
-        if quantized:
-            load_options["device_map"] = {"": self.device}
-        self.model = AutoModel.from_pretrained(
-            str(model_dir),
-            **load_options,
-        )
-        if not quantized:
+
+        if is_gptq:
+            try:
+                from auto_gptq import AutoGPTQForCausalLM
+            except ImportError as exc:
+                raise RuntimeError(
+                    "MiniCPM-o 2.6 INT4 requires the patched minicpmo AutoGPTQ fork. "
+                    "Run scripts/setup_minicpm_int4_windows.ps1."
+                ) from exc
+
+            self._quantized_model = AutoGPTQForCausalLM.from_quantized(
+                str(model_dir),
+                torch_dtype=torch.bfloat16,
+                device=self.device,
+                trust_remote_code=True,
+                local_files_only=True,
+                low_cpu_mem_usage=True,
+                disable_exllama=True,
+                disable_exllamav2=True,
+            )
+            self.model = self._quantized_model.model
+        else:
+            self.model = AutoModel.from_pretrained(
+                str(model_dir),
+                trust_remote_code=True,
+                local_files_only=True,
+                torch_dtype=dtype,
+                low_cpu_mem_usage=True,
+            )
             self.model.to(self.device)
+
         self.model.eval()
         if not hasattr(self.model, "get_vllm_embedding"):
             raise RuntimeError("This MiniCPM snapshot does not expose get_vllm_embedding")
