@@ -2,7 +2,11 @@ from __future__ import annotations
 
 import unittest
 
-from silhouette_detector.device import resolve_torch_device, select_onnx_providers
+from silhouette_detector.device import (
+    resolve_torch_device,
+    select_onnx_providers,
+    validate_onnx_session_providers,
+)
 
 
 class FakeCuda:
@@ -46,6 +50,22 @@ class DeviceTests(unittest.TestCase):
     def test_onnx_explicit_cuda_requires_provider(self) -> None:
         with self.assertRaises(RuntimeError):
             select_onnx_providers("cuda", ["CPUExecutionProvider"])
+
+    def test_onnx_explicit_cuda_rejects_session_fallback(self) -> None:
+        with self.assertRaisesRegex(RuntimeError, "initialized without CUDAExecutionProvider"):
+            validate_onnx_session_providers("cuda", ["CPUExecutionProvider"])
+
+    def test_onnx_explicit_cuda_accepts_active_cuda_provider(self) -> None:
+        providers = validate_onnx_session_providers(
+            "cuda", ["CUDAExecutionProvider", "CPUExecutionProvider"]
+        )
+        self.assertEqual(
+            providers, ("CUDAExecutionProvider", "CPUExecutionProvider")
+        )
+
+    def test_onnx_auto_may_fall_back_to_cpu(self) -> None:
+        providers = validate_onnx_session_providers("auto", ["CPUExecutionProvider"])
+        self.assertEqual(providers, ("CPUExecutionProvider",))
 
 
 if __name__ == "__main__":

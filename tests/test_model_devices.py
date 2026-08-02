@@ -2,8 +2,10 @@
 
 The tests auto-detect the checkpoint names used by this repository. Set
 ``HAD_TEST_RESNET_CHECKPOINT`` or ``HAD_TEST_TRANSFORMER_CHECKPOINT`` to use
-another path. CUDA tests are skipped in CPU-only environments unless
-``HAD_REQUIRE_CUDA_TESTS=1`` is set.
+another path. ``HAD_TEST_PROFILE=cpu`` runs only CPU device checks, while
+``HAD_TEST_PROFILE=cuda`` runs only CUDA device checks and requires CUDA.
+The default ``auto`` profile runs CPU checks and skips CUDA checks when CUDA
+is unavailable.
 """
 
 from __future__ import annotations
@@ -14,7 +16,6 @@ import unittest
 from pathlib import Path
 
 from PIL import Image
-
 
 PYTORCH_STACK_AVAILABLE = all(
     importlib.util.find_spec(module) is not None for module in ("torch", "torchvision")
@@ -30,6 +31,23 @@ if PYTORCH_STACK_AVAILABLE:
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 MODELS_DIR = PROJECT_ROOT / "models"
+
+
+def _test_profile() -> str:
+    value = os.environ.get("HAD_TEST_PROFILE", "auto").strip().lower()
+    if value.startswith("cuda"):
+        return "cuda"
+    if value not in {"auto", "cpu"}:
+        raise AssertionError("HAD_TEST_PROFILE must be one of: auto, cpu, cuda, cuda:N")
+    return value
+
+
+def _require_device_profile(device_type: str) -> None:
+    profile = _test_profile()
+    if profile not in {"auto", device_type}:
+        raise unittest.SkipTest(
+            f"{device_type.upper()} model check is outside the {profile!r} test profile"
+        )
 
 
 def _checkpoint_from_environment_or_models(
@@ -50,13 +68,14 @@ def _checkpoint_from_environment_or_models(
 
 
 def _require_cuda() -> str:
+    _require_device_profile("cuda")
     if torch.cuda.is_available():
         return "cuda:0"
     message = (
         "PyTorch CUDA is unavailable. Install a CUDA-enabled PyTorch build and verify "
         "that the NVIDIA driver is visible."
     )
-    if os.environ.get("HAD_REQUIRE_CUDA_TESTS") == "1":
+    if _test_profile() == "cuda" or os.environ.get("HAD_REQUIRE_CUDA_TESTS") == "1":
         raise AssertionError(message)
     raise unittest.SkipTest(message)
 
@@ -116,13 +135,14 @@ class RealModelDeviceTests(unittest.TestCase):
         if PYTORCH_STACK_AVAILABLE:
             return
         message = "PyTorch and torchvision are not installed"
-        if os.environ.get("HAD_REQUIRE_CUDA_TESTS") == "1":
+        profile = _test_profile()
+        if profile == "cuda" or (
+            profile == "auto" and os.environ.get("HAD_REQUIRE_CUDA_TESTS") == "1"
+        ):
             raise AssertionError(message)
         raise unittest.SkipTest(message)
 
-    def test_resnet_checkpoint_runs_on_cuda(self) -> None:
-        """Load the real ResNet weights on CUDA and execute one prediction."""
-        device = _require_cuda()
+    def _resnet_checkpoint(self) -> Path:
         checkpoint = _checkpoint_from_environment_or_models(
             "HAD_TEST_RESNET_CHECKPOINT",
             ("resnet_ens_11.19_e60_s0.782.pt", "resnet_attributes.pt"),
@@ -132,6 +152,44 @@ class RealModelDeviceTests(unittest.TestCase):
                 "ResNet checkpoint not found; set HAD_TEST_RESNET_CHECKPOINT or place it in models/"
             )
         self.assertTrue(checkpoint.is_file(), f"ResNet checkpoint not found: {checkpoint}")
+        return checkpoint
+
+    def _transformer_checkpoint(self) -> Path:
+        checkpoint = _checkpoint_from_environment_or_models(
+            "HAD_TEST_TRANSFORMER_CHECKPOINT",
+            (
+                "MiniCPM-2.6int4 weights.pt",
+                "MiniCPM-o 2.6int4 weights.pt",
+                "best_checkpoint.pt",
+                "vision_attr_transformer.pt",
+            ),
+        )
+        if checkpoint is None:
+            self.skipTest(
+                "Transformer checkpoint not found; set HAD_TEST_TRANSFORMER_CHECKPOINT "
+                "or place it in models/"
+            )
+        self.assertTrue(checkpoint.is_file(), f"Transformer checkpoint not found: {checkpoint}")
+        return checkpoint
+
+    def test_resnet_checkpoint_runs_on_cpu(self) -> None:
+        """Load the real ResNet weights on CPU and execute one prediction."""
+        _require_device_profile("cpu")
+        checkpoint = self._resnet_checkpoint()
+        backend = ResNetBackend(checkpoint, device="cpu")
+        self.assertEqual(next(backend.model.parameters()).device.type, "cpu")
+
+        image = Image.new("RGB", (256, 256), color=(96, 128, 160))
+        prediction = backend.predict(image)
+
+        self.assertEqual(set(prediction), set(ATTRIBUTE_KEYS))
+        self.assertTrue(all(isinstance(value, str) and value for value in prediction.values()))
+        print(f"ResNet CPU: attributes={len(prediction)}")
+
+    def test_resnet_checkpoint_runs_on_cuda(self) -> None:
+        """Load the real ResNet weights on CUDA and execute one prediction."""
+        device = _require_cuda()
+        checkpoint = self._resnet_checkpoint()
 
         torch.cuda.empty_cache()
         backend = ResNetBackend(checkpoint, device=device)
@@ -148,28 +206,17 @@ class RealModelDeviceTests(unittest.TestCase):
             f"allocated_mb={torch.cuda.memory_allocated() / 1024**2:.1f}"
         )
 
-    def test_transformer_checkpoint_runs_on_cpu_and_cuda(self) -> None:
-        """Strictly load the real Transformer checkpoint and run it on CPU and CUDA."""
-        checkpoint = _checkpoint_from_environment_or_models(
-            "HAD_TEST_TRANSFORMER_CHECKPOINT",
-            (
-                "MiniCPM-2.6int4 weights.pt",
-                "MiniCPM-o 2.6int4 weights.pt",
-                "best_checkpoint.pt",
-                "vision_attr_transformer.pt",
-            ),
-        )
-        if checkpoint is None:
-            self.skipTest(
-                "Transformer checkpoint not found; set HAD_TEST_TRANSFORMER_CHECKPOINT "
-                "or place it in models/"
-            )
-        self.assertTrue(checkpoint.is_file(), f"Transformer checkpoint not found: {checkpoint}")
-
+    def test_transformer_checkpoint_runs_on_cpu(self) -> None:
+        """Strictly load the real Transformer checkpoint and run it on CPU."""
+        _require_device_profile("cpu")
+        checkpoint = self._transformer_checkpoint()
         input_dim, output_heads, _ = _run_transformer(checkpoint, "cpu")
         print(f"Transformer CPU: input_dim={input_dim}, output_heads={output_heads}")
 
+    def test_transformer_checkpoint_runs_on_cuda(self) -> None:
+        """Strictly load the real Transformer checkpoint and run it on CUDA."""
         device = _require_cuda()
+        checkpoint = self._transformer_checkpoint()
         torch.cuda.empty_cache()
         input_dim, output_heads, allocated_bytes = _run_transformer(checkpoint, device)
         self.assertGreater(allocated_bytes, 0)

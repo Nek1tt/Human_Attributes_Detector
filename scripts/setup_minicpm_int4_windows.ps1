@@ -1,9 +1,10 @@
 [CmdletBinding()]
 param(
-    [string]$PythonVersion = "3.11",
+    [string]$PythonVersion = "3.11.9",
     [string]$Venv = ".venv-minicpm-torch280",
     [string]$CudaArch = "8.9",
-    [int]$MaxJobs = 2
+    [int]$MaxJobs = 2,
+    [string]$LockFile = "requirements/locks/windows-cuda-py311.lock.txt"
 )
 
 $ErrorActionPreference = "Stop"
@@ -19,6 +20,12 @@ $venvPath = if ([System.IO.Path]::IsPathRooted($Venv)) {
 }
 $depsRoot = Join-Path $repoRoot ".deps"
 $autoGptqPath = Join-Path $depsRoot "AutoGPTQ-minicpmo"
+$pythonSeries = ($PythonVersion -split "\.")[0..1] -join "."
+$lockPath = if ([System.IO.Path]::IsPathRooted($LockFile)) {
+    $LockFile
+} else {
+    Join-Path $repoRoot $LockFile
+}
 
 function Assert-Command([string]$Name, [string]$InstallHint) {
     if (-not (Get-Command $Name -ErrorAction SilentlyContinue)) {
@@ -68,7 +75,7 @@ if ($nvccVersion -notmatch "release 12\.8") {
 $env:CUDA_PATH = Split-Path (Split-Path $nvcc -Parent) -Parent
 
 if (-not (Test-Path -LiteralPath $venvPath -PathType Container)) {
-    & py.exe "-$PythonVersion" -m venv $venvPath
+    & py.exe "-$pythonSeries" -m venv $venvPath
     if ($LASTEXITCODE -ne 0) {
         throw "Could not create the Python $PythonVersion virtual environment."
     }
@@ -78,28 +85,43 @@ if (-not (Test-Path -LiteralPath $python -PathType Leaf)) {
     throw "Virtual environment Python not found: $python"
 }
 
-$actualPython = (& $python -c "import sys; print(f'{sys.version_info.major}.{sys.version_info.minor}')").Trim()
+$actualPython = (& $python -c "import platform; print(platform.python_version())").Trim()
 if ($actualPython -ne $PythonVersion) {
     throw "Expected Python $PythonVersion, but the virtual environment uses $actualPython."
 }
 
-& $python -m pip install --upgrade pip setuptools wheel ninja
-if ($LASTEXITCODE -ne 0) { throw "Could not install Python build tools." }
-
 & $python -m pip uninstall -y gptqmodel
 if ($LASTEXITCODE -ne 0) { throw "Could not remove GPTQModel from the environment." }
 
-& $python -m pip install `
-    "torch==2.8.0" `
-    "torchvision==0.23.0" `
-    --index-url "https://download.pytorch.org/whl/cu128"
-if ($LASTEXITCODE -ne 0) { throw "Could not install PyTorch 2.8.0 with CUDA 12.8." }
+if (Test-Path -LiteralPath $lockPath -PathType Leaf) {
+    Write-Host "Installing the complete pinned Windows CUDA lock: $lockPath"
+    & $python -m pip install -r $lockPath
+    if ($LASTEXITCODE -ne 0) { throw "Could not install the Windows CUDA lock." }
+    & $python -m pip install --no-build-isolation --no-deps --editable $repoRoot
+    if ($LASTEXITCODE -ne 0) { throw "Could not install the project checkout." }
+} else {
+    Write-Warning (
+        "The complete Windows CUDA lock is not present yet. Bootstrapping the validated direct " +
+        "versions; export and commit the full lock with scripts/export_windows_lock.ps1."
+    )
+    & $python -m pip install --upgrade pip setuptools wheel ninja
+    if ($LASTEXITCODE -ne 0) { throw "Could not install Python build tools." }
 
-& $python -m pip install -r (Join-Path $repoRoot "requirements/gpu.txt")
-if ($LASTEXITCODE -ne 0) { throw "Could not install GPU project dependencies." }
+    & $python -m pip install `
+        "torch==2.8.0" `
+        "torchvision==0.23.0" `
+        "torchaudio==2.8.0" `
+        --index-url "https://download.pytorch.org/whl/cu128"
+    if ($LASTEXITCODE -ne 0) { throw "Could not install PyTorch 2.8.0 with CUDA 12.8." }
 
-& $python -m pip install -r (Join-Path $repoRoot "requirements/minicpm-int4.txt")
-if ($LASTEXITCODE -ne 0) { throw "Could not install MiniCPM INT4 runtime dependencies." }
+    & $python -m pip install -r (Join-Path $repoRoot "requirements/gpu.txt")
+    if ($LASTEXITCODE -ne 0) { throw "Could not install GPU project dependencies." }
+
+    & $python -m pip install `
+        --upgrade-strategy only-if-needed `
+        -r (Join-Path $repoRoot "requirements/minicpm-int4.txt")
+    if ($LASTEXITCODE -ne 0) { throw "Could not install MiniCPM INT4 dependencies." }
+}
 
 New-Item -ItemType Directory -Force -Path $depsRoot | Out-Null
 if (-not (Test-Path -LiteralPath $autoGptqPath -PathType Container)) {
@@ -114,9 +136,29 @@ if (-not (Test-Path -LiteralPath (Join-Path $autoGptqPath ".git") -PathType Cont
 if ($LASTEXITCODE -ne 0) { throw "Could not fetch the pinned AutoGPTQ commit." }
 & git.exe -C $autoGptqPath checkout --detach $autoGptqCommit
 if ($LASTEXITCODE -ne 0) { throw "Could not check out the pinned AutoGPTQ commit." }
+$actualAutoGptqCommit = (& git.exe -C $autoGptqPath rev-parse HEAD).Trim()
+if ($actualAutoGptqCommit -ne $autoGptqCommit) {
+    throw "AutoGPTQ commit mismatch: expected $autoGptqCommit, found $actualAutoGptqCommit."
+}
 
 & (Join-Path $PSScriptRoot "patch_autogptq_torch28.ps1") -AutoGPTQPath $autoGptqPath
 if ($LASTEXITCODE -ne 0) { throw "Could not patch AutoGPTQ CUDA kernels." }
+$expectedModifiedFiles = @(
+    "autogptq_extension/cuda_64/autogptq_cuda_kernel_64.cu",
+    "autogptq_extension/cuda_256/autogptq_cuda_kernel_256.cu"
+)
+$actualModifiedFiles = @(& git.exe -C $autoGptqPath diff --name-only)
+if ($LASTEXITCODE -ne 0) { throw "Could not inspect the AutoGPTQ patch." }
+if ($actualModifiedFiles.Count -ne $expectedModifiedFiles.Count) {
+    throw "AutoGPTQ contains unexpected tracked changes: $($actualModifiedFiles -join ', ')"
+}
+foreach ($expectedFile in $expectedModifiedFiles) {
+    if ($expectedFile -notin $actualModifiedFiles) {
+        throw "AutoGPTQ expected patched file is missing from git diff: $expectedFile"
+    }
+}
+& git.exe -C $autoGptqPath diff --check
+if ($LASTEXITCODE -ne 0) { throw "AutoGPTQ patch failed git diff --check." }
 
 $env:TORCH_CUDA_ARCH_LIST = $CudaArch
 $env:COMPILE_MARLIN = "0"

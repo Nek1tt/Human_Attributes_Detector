@@ -30,6 +30,12 @@ def _verify_manifest(model_dir: Path, manifest: Path) -> None:
     metadata = json.loads(manifest.read_text(encoding="utf-8"))
     if not metadata.get("resolved_revision"):
         raise RuntimeError("MiniCPM model manifest has no resolved revision")
+    expected_config_hash = metadata.get("config_sha256")
+    if not isinstance(expected_config_hash, str):
+        raise RuntimeError("MiniCPM model manifest has no config.json hash")
+    config_path = model_dir / "config.json"
+    if not config_path.is_file() or _file_sha256(config_path) != expected_config_hash:
+        raise RuntimeError("MiniCPM config.json hash mismatch")
     expected = metadata.get("python_files_sha256")
     if not isinstance(expected, Mapping):
         raise RuntimeError("MiniCPM model manifest has no Python file hashes")

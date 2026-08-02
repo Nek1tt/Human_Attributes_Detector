@@ -1,9 +1,9 @@
 #!/usr/bin/env python3
-"""Automated local integrity test for Human Attributes Detector.
+"""Automated local video integrity test for Human Attributes Detector.
 
-This script intentionally excludes Docker and MiniCPM inference. It exercises
-the CPU installation, unit tests, PyTorch, the trained Transformer head, the
-real YOLO and ResNet weights, and the complete HTTP video pipeline.
+The same runner covers the ResNet/CPU and MiniCPM/CUDA backends. It exercises
+the selected Python environment, unit tests, real weights, the complete HTTP
+video pipeline, the rendered MP4, and the JSONL attribute output.
 """
 
 from __future__ import annotations
@@ -21,14 +21,30 @@ import time
 import traceback
 import urllib.error
 import urllib.request
+from collections.abc import Callable
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
-from typing import Callable
 
+from silhouette_detector.attributes.labels import (
+    ATTRIBUTE_KEYS,
+    ATTRIBUTE_LABELS_RU,
+    RU_TO_API,
+)
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 UNKNOWN_ATTRIBUTE = "не определен"
+ALLOWED_ATTRIBUTE_VALUES = {
+    RU_TO_API[attribute]: set(labels) for attribute, labels in ATTRIBUTE_LABELS_RU.items()
+}
+
+
+def configure_utf8_stdio() -> None:
+    """Make Russian labels safe when Windows redirects Python through PowerShell."""
+    for stream in (sys.stdout, sys.stderr):
+        reconfigure = getattr(stream, "reconfigure", None)
+        if reconfigure is not None:
+            reconfigure(encoding="utf-8", errors="backslashreplace")
 
 
 class TestFailure(RuntimeError):
@@ -44,9 +60,10 @@ class StepResult:
 
 
 class TestRun:
-    def __init__(self, output_dir: Path) -> None:
+    def __init__(self, output_dir: Path, parameters: dict[str, object] | None = None) -> None:
         self.output_dir = output_dir
         self.results: list[StepResult] = []
+        self.parameters = parameters or {}
 
     def step(self, name: str, action: Callable[[], str | None]) -> None:
         number = len(self.results) + 1
@@ -73,6 +90,7 @@ class TestRun:
             "executable": sys.executable,
             "project_root": str(PROJECT_ROOT),
             "created_at": datetime.now().astimezone().isoformat(),
+            "parameters": self.parameters,
             "steps": [asdict(item) for item in self.results],
             "error": error,
         }
@@ -80,10 +98,24 @@ class TestRun:
         return report_path
 
 
-def run_command(command: list[str], *, timeout: int = 900) -> str:
+def run_command(
+    command: list[str],
+    *,
+    timeout: int = 900,
+    environment: dict[str, str | None] | None = None,
+) -> str:
+    command_env = os.environ.copy()
+    command_env["PYTHONUTF8"] = "1"
+    command_env["PYTHONIOENCODING"] = "utf-8"
+    for name, value in (environment or {}).items():
+        if value is None:
+            command_env.pop(name, None)
+        else:
+            command_env[name] = value
     completed = subprocess.run(
         command,
         cwd=PROJECT_ROOT,
+        env=command_env,
         text=True,
         encoding="utf-8",
         errors="replace",
@@ -281,9 +313,17 @@ def validate_metadata(path: Path, *, require_attributes: bool) -> str:
                 raise TestFailure("person box must contain four coordinates")
             if not isinstance(person["attributes"], dict):
                 raise TestFailure("person attributes must be an object")
+            attributes = person["attributes"]
+            if set(attributes) != set(ATTRIBUTE_KEYS):
+                raise TestFailure(
+                    f"unexpected attribute keys: {sorted(attributes)}"
+                )
+            for key, value in attributes.items():
+                if value not in ALLOWED_ATTRIBUTE_VALUES[key]:
+                    raise TestFailure(f"invalid Russian label for {key}: {value!r}")
             detections += 1
             track_ids.add(int(person["track_id"]))
-            if any(value != UNKNOWN_ATTRIBUTE for value in person["attributes"].values()):
+            if any(value != UNKNOWN_ATTRIBUTE for value in attributes.values()):
                 records_with_known_attributes += 1
 
     if detections == 0:
@@ -292,8 +332,9 @@ def validate_metadata(path: Path, *, require_attributes: bool) -> str:
         )
     if require_attributes and records_with_known_attributes == 0:
         raise TestFailure(
-            "ResNet loaded, but no predicted attributes reached JSONL; use a longer video or "
-            "inspect asynchronous attribute inference"
+            "The selected backend loaded, but no predicted attributes reached JSONL; use a "
+            "5-15 second video where one person remains visible, or inspect asynchronous "
+            "attribute inference"
         )
     return (
         f"frames={len(records)}, detections={detections}, "
@@ -331,8 +372,8 @@ def validate_video(path: Path) -> str:
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(
         description=(
-            "Run local unit, PyTorch, real-model, API, MP4, and JSONL checks. "
-            "Docker and MiniCPM are intentionally excluded."
+            "Run local unit, PyTorch, real-model, API, MP4, and JSONL checks for "
+            "ResNet/CPU or MiniCPM/CUDA."
         )
     )
     parser.add_argument("--video", required=True, help="Path to a short video with a person")
@@ -347,9 +388,21 @@ def parse_args() -> argparse.Namespace:
             "are auto-detected"
         ),
     )
+    parser.add_argument(
+        "--minicpm-model-dir",
+        help="Verified local MiniCPM snapshot directory (required for --backend minicpm)",
+    )
+    parser.add_argument(
+        "--allow-unverified-model-code",
+        action="store_true",
+        help="Allow a local MiniCPM snapshot without model-manifest.json",
+    )
     parser.add_argument("--device", default="cpu", help="cpu, cuda, or cuda:N (default: cpu)")
     parser.add_argument(
-        "--backend", choices=("resnet", "none"), default="resnet", help="API backend"
+        "--backend",
+        choices=("resnet", "minicpm", "none"),
+        default="resnet",
+        help="API backend",
     )
     parser.add_argument("--timeout", type=int, default=900, help="Job timeout in seconds")
     parser.add_argument(
@@ -363,15 +416,34 @@ def parse_args() -> argparse.Namespace:
     parser.add_argument(
         "--with-ruff", action="store_true", help="Also run Ruff (requires development extras)"
     )
+    parser.add_argument(
+        "--output-dir",
+        help="Explicit artifact directory; default: var/system-tests/YYYYMMDD-HHMMSS",
+    )
     return parser.parse_args()
 
 
 def main() -> int:
+    configure_utf8_stdio()
     args = parse_args()
     timestamp = datetime.now().strftime("%Y%m%d-%H%M%S")
-    output_dir = PROJECT_ROOT / "var" / "system-tests" / timestamp
-    output_dir.mkdir(parents=True, exist_ok=False)
-    run = TestRun(output_dir)
+    output_dir = (
+        Path(args.output_dir).expanduser()
+        if args.output_dir
+        else PROJECT_ROOT / "var" / "system-tests" / timestamp
+    )
+    if not output_dir.is_absolute():
+        output_dir = PROJECT_ROOT / output_dir
+    output_dir = output_dir.resolve()
+    output_dir.mkdir(parents=True, exist_ok=True)
+    run = TestRun(
+        output_dir,
+        {
+            "backend": args.backend,
+            "device": args.device,
+            "video_argument": args.video,
+        },
+    )
     error: str | None = None
 
     try:
@@ -408,11 +480,43 @@ def main() -> int:
                     if path.is_file():
                         transformer = path.resolve()
                         break
+        minicpm_model_dir = None
+        if args.backend == "minicpm":
+            if not args.minicpm_model_dir:
+                raise TestFailure("--minicpm-model-dir is required for --backend minicpm")
+            minicpm_model_dir = Path(args.minicpm_model_dir).expanduser()
+            if not minicpm_model_dir.is_absolute():
+                minicpm_model_dir = PROJECT_ROOT / minicpm_model_dir
+            minicpm_model_dir = minicpm_model_dir.resolve()
+            if not minicpm_model_dir.is_dir():
+                raise TestFailure(f"MiniCPM snapshot not found: {minicpm_model_dir}")
+            if transformer is None:
+                raise TestFailure("--transformer is required for --backend minicpm")
+            if args.device == "cpu":
+                config = json.loads(
+                    (minicpm_model_dir / "config.json").read_text(encoding="utf-8")
+                )
+                quantization = config.get("quantization_config", {})
+                if str(quantization.get("quant_method", "")).lower() == "gptq":
+                    raise TestFailure(
+                        "MiniCPM INT4/GPTQ requires CUDA; use the ResNet backend in the "
+                        "CPU environment"
+                    )
+
+        run.parameters.update(
+            {
+                "video": str(video),
+                "yolo": str(yolo),
+                "resnet": str(resnet) if resnet else None,
+                "transformer": str(transformer) if transformer else None,
+                "minicpm_model_dir": str(minicpm_model_dir) if minicpm_model_dir else None,
+            }
+        )
 
         def preflight() -> str:
             if not (3, 11) <= sys.version_info[:2] < (3, 13):
                 raise TestFailure("Python 3.11 or 3.12 is required")
-            imports = ["numpy", "PIL", "fastapi", "uvicorn", "cv2", "onnxruntime", "torch"]
+            imports = ["numpy", "PIL", "fastapi", "uvicorn", "cv2", "torch", "onnxruntime"]
             code = (
                 "import importlib; "
                 f"mods={imports!r}; "
@@ -439,7 +543,7 @@ def main() -> int:
                 or "no broken requirements",
             )
             run.step(
-                "Unit tests including PyTorch tests",
+                f"Unit tests for the {args.device.upper()} profile",
                 lambda: run_command(
                     [
                         sys.executable,
@@ -451,6 +555,12 @@ def main() -> int:
                         "-v",
                     ],
                     timeout=args.timeout,
+                    environment={
+                        "HAD_TEST_PROFILE": args.device,
+                        "HAD_REQUIRE_CUDA_TESTS": (
+                            "1" if args.device.startswith("cuda") else None
+                        ),
+                    },
                 ).splitlines()[-1],
             )
         if args.with_ruff:
@@ -578,6 +688,8 @@ print(json.dumps(prediction, ensure_ascii=False))
         env = os.environ.copy()
         env.update(
             {
+                "PYTHONUTF8": "1",
+                "PYTHONIOENCODING": "utf-8",
                 "HAD_ATTRIBUTE_BACKEND": args.backend,
                 "HAD_DEVICE": args.device,
                 "HAD_DETECTOR_MODEL": str(yolo),
@@ -586,10 +698,17 @@ print(json.dumps(prediction, ensure_ascii=False))
                 "HAD_ALLOW_UNAUTHENTICATED_LOCAL": "false",
                 "HAD_MIN_TRACK_FRAMES": "1",
                 "HAD_TARGET_FPS": "5",
+                "HAD_SYNCHRONOUS_ATTRIBUTES": "true",
             }
         )
         if resnet is not None:
             env["HAD_RESNET_CHECKPOINT"] = str(resnet)
+        if args.backend == "minicpm":
+            env["HAD_MINICPM_MODEL_DIR"] = str(minicpm_model_dir)
+            env["HAD_TRANSFORMER_CHECKPOINT"] = str(transformer)
+            env["HAD_ALLOW_UNVERIFIED_MODEL_CODE"] = (
+                "true" if args.allow_unverified_model_code else "false"
+            )
 
         api_log = api_log_path.open("w", encoding="utf-8")
         process = subprocess.Popen(
@@ -654,7 +773,9 @@ print(json.dumps(prediction, ensure_ascii=False))
                 last_progress = -1.0
                 while time.monotonic() < deadline:
                     if process.poll() is not None:
-                        raise TestFailure(f"API process stopped with exit code {process.returncode}")
+                        raise TestFailure(
+                            f"API process stopped with exit code {process.returncode}"
+                        )
                     status = request_json(
                         f"{base_url}/api/v1/jobs/{job_id}",
                         headers={"X-API-Key": api_key},
@@ -689,7 +810,7 @@ print(json.dumps(prediction, ensure_ascii=False))
             run.step(
                 "Validate JSONL, detections, tracking, and attributes",
                 lambda: validate_metadata(
-                    metadata_path, require_attributes=args.backend == "resnet"
+                    metadata_path, require_attributes=args.backend != "none"
                 ),
             )
 
@@ -700,6 +821,10 @@ print(json.dumps(prediction, ensure_ascii=False))
                     raise TestFailure(f"runtime was not initialized: {health}")
                 if runtime.get("initialization_failed") is not False:
                     raise TestFailure(f"runtime initialization failed: {health}")
+                if runtime.get("backend") != args.backend:
+                    raise TestFailure(f"unexpected runtime backend: {runtime}")
+                if runtime.get("synchronous_attributes") is not True:
+                    raise TestFailure(f"video test did not use synchronous attributes: {runtime}")
                 return json.dumps(runtime, ensure_ascii=False)
 
             run.step("Final runtime health", final_health)

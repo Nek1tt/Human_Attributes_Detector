@@ -47,30 +47,89 @@ Backend загружается один раз. Все видео использ
 
 ## Ветки
 
-Разработку этой версии следует начинать от `main` в новой ветке:
+Текущая стабилизация MiniCPM и воспроизводимого окружения ведётся в ветке
+`detector-remaster`. Перед воспроизведением сохраните точный commit проекта:
 
 ```bash
-git switch main
-git pull --ff-only
-git switch -c refactor/unified
+git rev-parse HEAD
+git status --short --branch
 ```
 
-Не сливайте старые `bot` и `minicpmo` целиком. В них остаются опубликованный секрет, абсолютные пути,
-несогласованные training scripts и сломанный gitlink. Полезная логика уже перенесена в эту версию.
+Специальный AutoGPTQ не является веткой этого репозитория: установочный скрипт клонирует его в
+`.deps/AutoGPTQ-minicpmo` и проверяет отдельный commit.
+
+## Проверенный Windows baseline
+
+Полные CPU- и CUDA-проходы проверены 2–3 августа 2026 года. CPU-профиль использует
+`YOLO ONNX → SFSORT → ResNet`, CUDA-профиль —
+`YOLO ONNX → SFSORT → MiniCPM INT4 → VisionAttrTransformer`.
+
+| Компонент | Зафиксированное значение |
+|---|---|
+| Windows | `Windows-10-10.0.26200-SP0` |
+| Python | `3.11.9` |
+| PyTorch | `2.8.0+cu128` |
+| torchvision / torchaudio | `0.23.0+cu128` / `2.8.0+cu128` |
+| CUDA в PyTorch / Toolkit | `12.8` / `12.8` |
+| nvcc / cuDNN | `12.8.61` / `91002` |
+| GPU | NVIDIA GeForce RTX 4060 Ti, `16379.375 MiB` VRAM |
+| NVIDIA driver | `591.86` |
+| ONNX Runtime CPU / CUDA | `onnxruntime==1.28.0` / `onnxruntime-gpu==1.26.0` |
+| Transformers | `4.44.2` |
+| AutoGPTQ | `0.8.0.dev0+cu121`, исходники пересобраны локально под PyTorch/CUDA baseline |
+| MiniCPM | `openbmb/MiniCPM-o-2_6-int4` revision `f347c848dd57a5dfdf5b6e32eb257101a6a8a07f` |
+
+Единый машиночитаемый источник этих значений —
+[`reproducibility/windows-cuda-baseline.json`](reproducibility/windows-cuda-baseline.json).
+Полные списки зависимостей сохранены в двух файлах: 40 точных CPU-пакетов в
+[`windows-cpu-py311.lock.txt`](requirements/locks/windows-cpu-py311.lock.txt) и 101 CUDA-пакет в
+[`windows-cuda-py311.lock.txt`](requirements/locks/windows-cuda-py311.lock.txt). Локальные
+editable-установки проекта и AutoGPTQ намеренно не включены: их версии определяются Git commit.
+
+SHA256 в baseline нужен скриптам, чтобы автоматически отличить правильные веса и snapshot от
+другого файла с тем же именем. При обычной установке копировать или вводить хеши вручную не нужно.
+
+## Подтверждённые результаты
+
+Оба видеотеста использовали один тестовый MP4: 33 обрабатываемых кадра, `854×478`, `5 FPS`, два
+track ID. Время `video job` включает полный HTTP-проход от загрузки до готовых MP4 и JSONL.
+
+| Профиль | Backend атрибутов | Фактический YOLO provider | Video job | Кадры | Детекции | С атрибутами | Результат |
+|---|---|---|---:|---:|---:|---:|---|
+| Windows CPU | ResNet | `CPUExecutionProvider` | `14.094 s` | 33 | 66 | 66 | PASS |
+| Windows CUDA | MiniCPM + Transformer | `CUDAExecutionProvider` | `28.250 s` | 33 | 66 | 66 | PASS |
+
+Эти строки подтверждают воспроизводимость двух разных backends, но не являются честным сравнением
+скорости CPU и GPU: ResNet и MiniCPM решают этап атрибутов разными моделями.
+
+Отдельный CUDA-анализ MiniCPM + Transformer на RTX 4060 Ti:
+
+| Замер | Значение |
+|---|---:|
+| Загрузка backend | `18.133 s` |
+| Первый полный inference | `1.596 s` |
+| Среднее из 5 прогретых inference | `779.276 ms` |
+| Диапазон прогретых inference | `770.285–787.100 ms` |
+| Peak allocated VRAM | `9274.949 MiB` |
+| Рост live allocated VRAM после 5 повторов | `0 MiB` |
+
+Все исходные числа также записаны в
+[`reproducibility/windows-cuda-baseline.json`](reproducibility/windows-cuda-baseline.json).
 
 ## Требования
 
-- Python 3.11 или 3.12;
+- для проверенного Windows baseline: 64-bit Python `3.11.9`;
 - FFmpeg в `PATH` (рекомендуется даже при использовании OpenCV);
 - Git submodules;
-- для GPU: совместимые NVIDIA driver, CUDA runtime и cuDNN;
+- для MiniCPM INT4: CUDA Toolkit `12.8`, совместимый NVIDIA driver и Visual Studio 2022 Build
+  Tools с workload **Desktop development with C++**;
 - веса моделей, которых нет в Git.
 
 Клонирование:
 
 ```bash
-git clone --recurse-submodules https://github.com/stasesonchik/Silhouette_Detector.git
-cd Silhouette_Detector
+git clone --recurse-submodules https://github.com/Nek1tt/Human_Attributes_Detector.git
+cd Human_Attributes_Detector
 ```
 
 Если репозиторий уже клонирован:
@@ -79,43 +138,88 @@ cd Silhouette_Detector
 git submodule update --init --recursive
 ```
 
-### Установка на CPU
+### Windows: CPU (YOLO ONNX + ResNet)
 
-```bash
-python -m venv .venv
-source .venv/bin/activate        # Windows: .venv\Scripts\activate
-python -m pip install --upgrade pip
-pip install -r requirements/cpu.txt
+Положите собственное короткое видео в игнорируемый Git каталог `test-data/`, а YOLO и ResNet — в
+`models/`. Затем установите проверенный CPU lock:
+
+```powershell
+.\scripts\setup_cpu_windows.ps1
 ```
 
-На CPU поддерживаются YOLO ONNX и ResNet. Полноточная MiniCPM-o 2.6 теоретически может работать на
-CPU, но требует очень много RAM и практически не подходит для этого пайплайна.
+Скрипт требует именно Python `3.11.9`. Отдельный ResNet-видеотест:
 
-### Установка на NVIDIA GPU
-
-Для обычного GPU backend установите PyTorch и зависимости проекта:
-
-```bash
-pip install torch==2.8.0 torchvision==0.23.0 --index-url https://download.pytorch.org/whl/cu128
-pip install -r requirements/gpu.txt
+```powershell
+.\scripts\run_resnet_video_test.ps1 `
+  -Video "test-data\person.mp4" `
+  -Yolo "models\yolov8s_576x1024_v2.onnx" `
+  -ResNetCheckpoint "models\resnet_ens_11.19_e60_s0.782.pt"
 ```
 
-Для полноточной MiniCPM дополнительно:
+Полная проверка воспроизводимости выполняется одной командой. Она создаёт два новых окружения:
+bootstrap для формирования CPU lock и второе чистое окружение, устанавливаемое только из lock.
+Во втором окружении выполняются unit-тесты и полный видеопроход YOLO → SFSORT → ResNet → MP4 +
+JSONL:
 
-```bash
-pip install -r requirements/minicpm.txt
+```powershell
+.\scripts\verify_clean_cpu_install.ps1 `
+  -Video "test-data\person.mp4" `
+  -Yolo "models\yolov8s_576x1024_v2.onnx" `
+  -ResNetCheckpoint "models\resnet_ens_11.19_e60_s0.782.pt"
 ```
 
-MiniCPM-o 2.6 INT4 требует специальную ветку AutoGPTQ и Transformers 4.44.2. На Windows
-полная установка в отдельное окружение выполняется из PowerShell одной командой:
+Команда создаёт два временных окружения, повторно экспортирует CPU lock и проверяет, что он
+совпадает с зафиксированным. Отчёты появляются в `var\cpu-clean-validation-*`. Веса, test-data,
+snapshot, venv и секреты в Git и validation bundle не включаются.
+
+На CPU поддерживаются YOLO ONNX, SFSORT и ResNet. Проверенный MiniCPM INT4 использует GPTQ и
+AutoGPTQ, поэтому требует CUDA.
+
+### Windows: NVIDIA CUDA + MiniCPM INT4
+
+В корне репозитория выполните:
 
 ```powershell
 .\scripts\setup_minicpm_int4_windows.ps1
 ```
 
-Скрипт устанавливает PyTorch 2.8.0 + CUDA 12.8, фиксированные MiniCPM-зависимости, клонирует
-проверенный commit ветки `minicpmo`, исправляет устаревшие CUDA-вызовы и собирает расширения.
-Требуются Python 3.11, CUDA Toolkit 12.8 и Visual Studio 2022 Build Tools с C++ workload.
+Скрипт:
+
+- создаёт `.venv-minicpm-torch280` на Python `3.11.9`;
+- устанавливает `torch`, `torchvision` и `torchaudio` для CUDA `12.8`;
+- устанавливает `onnxruntime-gpu==1.26.0`, совместимый с CUDA 12.8 и cuDNN 9;
+- устанавливает проверенные зависимости remote code MiniCPM;
+- клонирует `https://github.com/RanchiZhao/AutoGPTQ.git`;
+- checkout commit `a9c8109ef450793e3d890c76a36f22177fcbbe28`;
+- применяет проверенный патч 16 устаревших CUDA-вызовов и собирает расширения;
+- запускает импорт всех зависимостей, проверку версий и `pip check`.
+
+Экспортировать CUDA lock нужно только после намеренного изменения зависимостей:
+
+```powershell
+.\scripts\export_windows_lock.ps1 -Target cuda
+```
+
+Обычная установка уже использует зафиксированный lock автоматически. После установки проверьте точные
+версии и CUDA-расширения:
+
+```powershell
+.\scripts\verify_minicpm_env.ps1
+```
+
+Подготовьте локальный snapshot exact revision и запустите полный CUDA-видеотест:
+
+```powershell
+$MiniCPMDir = "C:\Users\USERNAME\.cache\huggingface\hub\models--openbmb--MiniCPM-o-2_6-int4\snapshots\f347c848dd57a5dfdf5b6e32eb257101a6a8a07f"
+
+.\scripts\prepare_minicpm_snapshot.ps1 -MiniCPMModelDir $MiniCPMDir
+
+.\scripts\run_minicpm_video_test.ps1 `
+  -Video "test-data\person.mp4" `
+  -Yolo "models\yolov8s_576x1024_v2.onnx" `
+  -MiniCPMModelDir $MiniCPMDir `
+  -TransformerCheckpoint "models\MiniCPM-o 2.6int4 weights.pt"
+```
 
 Не устанавливайте одновременно `onnxruntime` и `onnxruntime-gpu` в одно окружение.
 
@@ -138,26 +242,123 @@ MiniCPM-o 2.6 INT4 требует специальную ветку AutoGPTQ и 
 Последние два имени относятся к одному checkpoint вашего `VisionAttrTransformer`, а не к весам
 самой MiniCPM.
 
+Проверенный YOLO checkpoint:
+
+- размер: `44805580` bytes;
+- SHA256: `c0d4889317191548e8c18a31b4b91f8d2b28842102eebe4523f9f1593a9ea933`;
+- вход ONNX: `1024×576`.
+
+Проверенный Transformer checkpoint:
+
+- размер: `585660899` bytes;
+- SHA256: `099510a29497162f9afbab9cad1b5092fe246d70869bb90bd7b6e2ed2b6affe2`;
+- архитектура: `input_dim=3584`, `hidden_dim=768`, `num_layers=6`, `num_heads=12`;
+- девять attribute heads: `3, 6, 7, 13, 13, 8, 4, 3, 3` классов.
+
+Checkpoint не хранится в Git. Для полного воспроизведения его нужно получить отдельно и положить в
+`models/`; validation-скрипт сам сверит SHA256 перед загрузкой.
+
+Проверенный ResNet checkpoint:
+
+- размер: `943757326` bytes;
+- SHA256: `0c0ae02e9a5990c6adbd1ac1d2ca0e6a88c21091b87ee7de621115b328447a91`.
+
 ### Локальный MiniCPM
 
-Модель скачивается один раз. Команда разрешает `main` в конкретный commit SHA, сохраняет snapshot
-локально и записывает SHA-256 всех Python-файлов модели:
+Для уже загруженного Hugging Face snapshot выполните:
 
-```bash
-had-download-minicpm \
-  --repo-id openbmb/MiniCPM-o-2_6-int4 \
-  --revision main \
-  --destination models/minicpm-o-2_6-int4
+```powershell
+.\scripts\prepare_minicpm_snapshot.ps1 `
+  -MiniCPMModelDir "C:\Users\USERNAME\.cache\huggingface\hub\models--openbmb--MiniCPM-o-2_6-int4\snapshots\f347c848dd57a5dfdf5b6e32eb257101a6a8a07f"
 ```
 
-После этого runtime использует только `local_files_only=True`. Для полностью воспроизводимой
-установки укажите вместо `main` SHA из созданного `model-manifest.json`.
+Для скачивания exact revision в новый каталог добавьте `-Download`:
+
+```powershell
+.\scripts\prepare_minicpm_snapshot.ps1 `
+  -MiniCPMModelDir "models\minicpm-o-2_6-int4" `
+  -Download
+```
+
+Скрипт никогда не использует `main`: он скачивает revision
+`f347c848dd57a5dfdf5b6e32eb257101a6a8a07f`, применяет зафиксированное исправление отсутствующего
+`typing.List` в `resampler.py`, записывает `model-manifest.json` и сверяет SHA256 всех восьми
+Python-файлов remote code с baseline. После этого `HAD_ALLOW_UNVERIFIED_MODEL_CODE` не нужен.
+Runtime использует `local_files_only=True` и при каждой загрузке повторно сверяет manifest.
 
 MiniCPM-o 4.5 является более новой omni-моделью, а MiniCPM-V 4.6 — более новой и заметно меньшей
 vision-моделью. Они **не являются drop-in заменой**: размер и распределение визуальных embeddings
 изменились, поэтому старый `VisionAttrTransformer` нужно переобучить. До появления датасета и нового
 checkpoint проект намеренно сохраняет MiniCPM-o 2.6. Официальные источники:
 <https://github.com/OpenBMB/MiniCPM-V> и <https://huggingface.co/openbmb/MiniCPM-o-4_5>.
+
+## Сбор полного отчёта об окружении
+
+После подготовки snapshot и checkpoint выполните одну команду:
+
+```powershell
+.\scripts\capture_reproducibility.ps1 `
+  -MiniCPMModelDir "C:\Users\USERNAME\.cache\huggingface\hub\models--openbmb--MiniCPM-o-2_6-int4\snapshots\f347c848dd57a5dfdf5b6e32eb257101a6a8a07f" `
+  -TransformerCheckpoint "models\MiniCPM-o 2.6int4 weights.pt" `
+  -ResNetCheckpoint "models\resnet_ens_11.19_e60_s0.782.pt"
+```
+
+В `var\reproducibility-YYYYMMDD-HHMMSS\` появятся:
+
+| Файл | Содержимое |
+|---|---|
+| `environment-report.json` | Python, все packages, PyTorch/CUDA/cuDNN, GPU/VRAM/driver, `nvcc`, Git, AutoGPTQ, модели, Docker bases и baseline checks |
+| `pip-freeze.txt` | исходный полный `pip freeze --all`, включая сведения об editable installs |
+| `requirements-lock-candidate.txt` | переносимый кандидат lock без editable проекта и AutoGPTQ |
+
+По умолчанию команда завершается ошибкой при любом отличии от baseline. Чтобы только собрать отчёт
+из другого окружения, используйте `-AllowBaselineDifferences`.
+
+Отдельный подробный CUDA-анализ с одной загрузкой backend и пятью inference:
+
+```powershell
+.\scripts\run_minicpm_transformer_analysis.ps1 `
+  -MiniCPMModelDir $MiniCPMDir `
+  -TransformerCheckpoint $TransformerCheckpoint `
+  -InputImage "test-data\example1.jpg" `
+  -Repeats 5
+```
+
+После создания проверенного `model-manifest.json` флаг `-AllowUnverifiedModelCode` здесь не нужен.
+
+Полный MiniCPM-видеотест через тот же HTTP pipeline:
+
+```powershell
+.\scripts\run_minicpm_video_test.ps1 `
+  -Video "test-data\person.mp4" `
+  -Yolo "models\yolov8s_576x1024_v2.onnx" `
+  -MiniCPMModelDir $MiniCPMDir `
+  -TransformerCheckpoint "models\MiniCPM-o 2.6int4 weights.pt"
+```
+
+Скрипт использует `.venv-minicpm-torch280`, `cuda` и проверенный локальный manifest по
+умолчанию. Он проверяет реальный MP4, наличие детекций и track ID, все девять API-ключей,
+допустимость русских меток и наличие рассчитанных атрибутов в JSONL. Результаты и готовый ZIP
+появляются в `var\video-tests\*-minicpm`.
+
+## Docker
+
+Base images закреплены одновременно tag и multi-platform digest:
+
+| Файл | Base image |
+|---|---|
+| `Dockerfile` | `python:3.11.9-slim-bookworm@sha256:8fb099...c60c317` |
+| `Dockerfile.gpu` | `nvidia/cuda:12.8.1-cudnn-runtime-ubuntu24.04@sha256:ac55d1...1eb34bc` |
+
+```bash
+docker build -t human-attributes-detector:cpu -f Dockerfile .
+docker build -t human-attributes-detector:gpu -f Dockerfile.gpu .
+```
+
+Оба Dockerfile используют те же прямые зависимости, что и локальная установка. На данном этапе
+подтверждены Windows CPU и Windows CUDA; Docker CPU/GPU ещё предстоит собрать и проверить.
+Текущий `Dockerfile.gpu` покрывает CUDA-путь ONNX/ResNet, но пока не собирает специальный AutoGPTQ
+для MiniCPM INT4.
 
 ## Конфигурация
 
@@ -261,7 +462,7 @@ had-train-transformer embeddings/ models/vision_attr_transformer.pt --device cud
 ```bash
 pip install -r requirements/dev.txt
 ruff check .
-python -m compileall -q src tests
+python -m compileall -q src tests scripts
 python -m unittest discover -s tests -v
 pip-audit
 ```

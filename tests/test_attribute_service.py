@@ -42,6 +42,20 @@ class AttributeServiceTests(unittest.TestCase):
         finally:
             service.close()
 
+    def test_wait_returns_the_first_prediction_without_duplicate_loading(self) -> None:
+        backend = FakeBackend()
+        service = AttributeService(backend)
+        image = Image.new("RGB", (32, 64))
+        try:
+            self.assertTrue(service.submit("video", 3, image))
+            result = service.wait("video", 3)
+            self.assertIsNotNone(result)
+            self.assertEqual(result["gender"], "мужчина")
+            self.assertEqual(service.get("video", 3), result)
+            self.assertEqual(backend.calls, 1)
+        finally:
+            service.close()
+
 
 if __name__ == "__main__":
     unittest.main()

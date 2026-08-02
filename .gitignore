@@ -17,6 +17,9 @@ htmlcov/
 dist/
 build/
 var/
+/test-data/
+/human-attributes-detector-reproducibility.patch
+/finalize_detector_remaster_commit.ps1
 uploaded_videos/
 videos/
 embeddings/

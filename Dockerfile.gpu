@@ -1,4 +1,4 @@
-FROM nvidia/cuda:12.8.1-cudnn-runtime-ubuntu24.04
+FROM nvidia/cuda:12.8.1-cudnn-runtime-ubuntu24.04@sha256:ac55d124da4882b497f732d8dfd9a702d5447a5f29d08d56da6f64f0a1eb34bc
 
 ENV DEBIAN_FRONTEND=noninteractive \
     PYTHONDONTWRITEBYTECODE=1 \
@@ -14,11 +14,14 @@ RUN apt-get update \
 
 WORKDIR /app
 COPY pyproject.toml README.md ./
+COPY requirements ./requirements
 COPY src ./src
 COPY SFSORT/SFSORT.py SFSORT/__init__.py SFSORT/LICENSE ./SFSORT/
-RUN python3 -m pip install --no-cache-dir --break-system-packages ".[api,gpu]" \
-    && python3 -m pip install --no-cache-dir --break-system-packages torch torchvision \
-       --index-url https://download.pytorch.org/whl/cu128
+RUN python3 -m pip install --no-cache-dir --break-system-packages \
+       torch==2.8.0 torchvision==0.23.0 torchaudio==2.8.0 \
+       --index-url https://download.pytorch.org/whl/cu128 \
+    && python3 -m pip install --no-cache-dir --break-system-packages \
+       -r requirements/gpu.txt
 
 RUN mkdir -p /app/models /app/var/uploads /app/var/outputs \
     && chown -R app:app /app

@@ -21,12 +21,17 @@ class SettingsTests(unittest.TestCase):
     def test_valid_cpu_settings(self) -> None:
         with patch.dict(
             os.environ,
-            {"HAD_DEVICE": "cpu", "HAD_ATTRIBUTE_BACKEND": "none"},
+            {
+                "HAD_DEVICE": "cpu",
+                "HAD_ATTRIBUTE_BACKEND": "none",
+                "HAD_SYNCHRONOUS_ATTRIBUTES": "true",
+            },
             clear=True,
         ):
             settings = Settings.from_env()
         self.assertEqual(settings.device, "cpu")
         self.assertEqual(settings.attribute_backend, "none")
+        self.assertTrue(settings.synchronous_attributes)
 
 
 if __name__ == "__main__":

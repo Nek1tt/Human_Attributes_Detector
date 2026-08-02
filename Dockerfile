@@ -1,4 +1,4 @@
-FROM python:3.12-slim
+FROM python:3.11.9-slim-bookworm@sha256:8fb099199b9f2d70342674bd9dbccd3ed03a258f26bbd1d556822c6dfc60c317
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
@@ -13,9 +13,12 @@ RUN apt-get update \
 
 WORKDIR /app
 COPY pyproject.toml README.md ./
+COPY requirements ./requirements
 COPY src ./src
 COPY SFSORT/SFSORT.py SFSORT/__init__.py SFSORT/LICENSE ./SFSORT/
-RUN pip install --no-cache-dir ".[api,cpu]"
+RUN pip install --no-cache-dir torch==2.8.0 torchvision==0.23.0 \
+       --index-url https://download.pytorch.org/whl/cpu \
+    && pip install --no-cache-dir -r requirements/cpu.txt
 
 RUN mkdir -p /app/models /app/var/uploads /app/var/outputs \
     && chown -R app:app /app

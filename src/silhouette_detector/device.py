@@ -49,3 +49,21 @@ def select_onnx_providers(requested: str, available: Iterable[str]) -> list[str]
             )
         return [cuda, cpu]
     raise ValueError(f"Unsupported device: {requested}")
+
+
+def validate_onnx_session_providers(
+    requested: str, active: Iterable[str]
+) -> tuple[str, ...]:
+    """Reject ONNX Runtime's silent CPU fallback for an explicit CUDA request."""
+
+    active_providers = tuple(active)
+    cuda = "CUDAExecutionProvider"
+    requested = requested.lower()
+    if (requested == "cuda" or requested.startswith("cuda:")) and cuda not in active_providers:
+        raise RuntimeError(
+            "CUDA was requested, but the ONNX Runtime session initialized without "
+            "CUDAExecutionProvider. CUDA/cuDNN DLL loading probably failed; inspect the "
+            "ONNX Runtime messages above. Active providers: "
+            f"{list(active_providers)}"
+        )
+    return active_providers

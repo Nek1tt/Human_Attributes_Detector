@@ -53,6 +53,7 @@ class Settings:
     device: str = "auto"
     target_fps: float = 10.0
     min_track_frames: int = 3
+    synchronous_attributes: bool = False
     max_upload_bytes: int = 250 * 1024 * 1024
     max_video_seconds: int = 600
     max_frame_pixels: int = 3840 * 2160
@@ -99,6 +100,7 @@ class Settings:
             device=os.getenv("HAD_DEVICE", "auto").strip().lower(),
             target_fps=float(os.getenv("HAD_TARGET_FPS", "10")),
             min_track_frames=_env_int("HAD_MIN_TRACK_FRAMES", 3, minimum=1),
+            synchronous_attributes=_env_bool("HAD_SYNCHRONOUS_ATTRIBUTES", False),
             max_upload_bytes=_env_int(
                 "HAD_MAX_UPLOAD_BYTES", 250 * 1024 * 1024, minimum=1024
             ),

@@ -1,0 +1,173 @@
+{
+  "schema_version": 1,
+  "baseline_name": "windows-cuda-minicpm-o-2_6-int4-autogptq",
+  "validated_at": "2026-08-02T18:43:06.266148+00:00",
+  "source_branch": "detector-remaster",
+  "source_commit_before_reproducibility_changes": "3d82248152d7e6ab27048add915ac1807a3a4649",
+  "platform": {
+    "os": "Windows-10-10.0.26200-SP0",
+    "python": "3.11.9",
+    "python_implementation": "CPython",
+    "architecture": "64bit",
+    "pip": "26.2",
+    "setuptools": "83.0.0",
+    "wheel": "0.47.0"
+  },
+  "pytorch": {
+    "torch": "2.8.0+cu128",
+    "torchvision": "0.23.0+cu128",
+    "torchaudio": "2.8.0+cu128",
+    "torch_cuda": "12.8",
+    "cuda_toolkit": "12.8",
+    "nvcc_version": "12.8.61",
+    "cudnn": 91002
+  },
+  "validated_packages": {
+    "accelerate": "1.2.1",
+    "auto-gptq": "0.8.0.dev0+cu121",
+    "librosa": "0.10.2.post1",
+    "sentencepiece": "0.2.0",
+    "soundfile": "0.12.1",
+    "timm": "0.9.10",
+    "transformers": "4.44.2",
+    "vector-quantize-pytorch": "1.18.5",
+    "vocos": "0.1.0"
+  },
+  "onnxruntime": {
+    "cpu_distribution": "onnxruntime",
+    "cpu_version": "1.28.0",
+    "cuda_distribution": "onnxruntime-gpu",
+    "cuda_version": "1.26.0",
+    "cuda_provider_required": true
+  },
+  "hardware": {
+    "gpu": "NVIDIA GeForce RTX 4060 Ti",
+    "total_vram_mib": 16379.375,
+    "nvidia_driver": "591.86",
+    "compute_capability": "8.9"
+  },
+  "autogptq": {
+    "repository": "https://github.com/RanchiZhao/AutoGPTQ.git",
+    "branch": "minicpmo",
+    "commit": "a9c8109ef450793e3d890c76a36f22177fcbbe28",
+    "tracked_diff_sha256": "0961bc01dc270a463be570e25f182141b6e9c28165be6bf1c348e6ad6c0c877f",
+    "cuda_patch": {
+      "script": "scripts/patch_autogptq_torch28.ps1",
+      "replacement": "vec.type() -> vec.scalar_type()",
+      "expected_replacements": 16,
+      "modified_files": [
+        "autogptq_extension/cuda_64/autogptq_cuda_kernel_64.cu",
+        "autogptq_extension/cuda_256/autogptq_cuda_kernel_256.cu"
+      ]
+    }
+  },
+  "minicpm": {
+    "repository": "openbmb/MiniCPM-o-2_6-int4",
+    "revision": "f347c848dd57a5dfdf5b6e32eb257101a6a8a07f",
+    "model_type": "minicpmo",
+    "quant_method": "gptq",
+    "config_sha256": "6b126bd590987009358195a6c9658b8876099b6f3c214cb5fd0e8379584443d6",
+    "remote_code_patch": {
+      "id": "resampler-typing-list-import",
+      "description": "Add the missing typing.List import required by this revision on Python 3.11.",
+      "script": "src/silhouette_detector/model_store.py"
+    },
+    "python_files_sha256_after_patch": {
+      "configuration_minicpm.py": "b6fe4224dabce0389aaa6ecf9c05849a81935b7a56a8585e581aac11262e70cd",
+      "image_processing_minicpmv.py": "be645337bd25811ae1f86e3aaa21fa5b555719870f5612004b4a67357148fe1f",
+      "modeling_minicpmo.py": "706c968bc8f8d43652c555c7088b3869a35b4f973491227ed1481a5896160783",
+      "modeling_navit_siglip.py": "f0a3e2fb52824ae06e30973c9e92abfdb441d0585674fa0cfc779bca4820c223",
+      "processing_minicpmo.py": "1c580f748216ca55b4d72182267e0687a494fe6e61415e6f827c9a139c9a4522",
+      "resampler.py": "1b304c316358b142c60ee546fe46a05c5c2f2fa6ba295662445db1093ea73e7b",
+      "tokenization_minicpmo_fast.py": "6b9393bab49d4843fbf7ffdced7d58ebbfc5269c3876721a4e9f6090021d990b",
+      "utils.py": "b94f26ab37e99541a461eacf6009d8ddca70dfe446b8ed6b48db698b7564b27b"
+    }
+  },
+  "yolo": {
+    "checkpoint_sha256": "c0d4889317191548e8c18a31b4b91f8d2b28842102eebe4523f9f1593a9ea933",
+    "checkpoint_size_bytes": 44805580,
+    "input_width": 1024,
+    "input_height": 576
+  },
+  "transformer": {
+    "checkpoint_sha256": "099510a29497162f9afbab9cad1b5092fe246d70869bb90bd7b6e2ed2b6affe2",
+    "checkpoint_size_bytes": 585660899,
+    "input_dim": 3584,
+    "hidden_dim": 768,
+    "num_layers": 6,
+    "num_attention_heads": 12,
+    "attribute_head_sizes_ru": {
+      "пол": 3,
+      "возраст": 6,
+      "голов_убор": 7,
+      "цвет_верх": 13,
+      "цвет_низ": 13,
+      "тип_верх": 8,
+      "тип_низ": 4,
+      "сумка_спина": 3,
+      "сумка_рука": 3
+    }
+  },
+  "resnet": {
+    "checkpoint_sha256": "0c0ae02e9a5990c6adbd1ac1d2ca0e6a88c21091b87ee7de621115b328447a91",
+    "checkpoint_size_bytes": 943757326
+  },
+  "locks": {
+    "windows_cuda_py311": {
+      "path": "requirements/locks/windows-cuda-py311.lock.txt",
+      "sha256": "fa165fdf212a13a54ed9f3a995d1e150615bb66a697c55493c81c07cb0b89e3f",
+      "exact_package_pins": 101,
+      "source": "verified pip freeze --all on the validated Windows CUDA machine"
+    },
+    "windows_cpu_py311": {
+      "path": "requirements/locks/windows-cpu-py311.lock.txt",
+      "sha256": "167ec2d8483b16cdd1134a1622b8a200a10b2177704f724f36b011511e729722",
+      "exact_package_pins": 40,
+      "source": "two byte-identical freezes around a clean Windows CPU installation"
+    }
+  },
+  "validation_runs": {
+    "minicpm_transformer_analysis": {
+      "started_at": "2026-08-02T17:10:39.726275+00:00",
+      "device": "cuda:0",
+      "model_load_ms": 18133.118,
+      "first_full_inference_ms": 1595.912,
+      "warm_inference_repeats": 5,
+      "warm_inference_mean_ms": 779.276,
+      "warm_inference_min_ms": 770.285,
+      "warm_inference_max_ms": 787.1,
+      "peak_allocated_vram_mib": 9274.949,
+      "live_allocated_growth_mib": 0.0,
+      "cuda_oom_detected": false
+    },
+    "resnet_cpu_video": {
+      "completed_at": "2026-08-03T01:21:58.368958+07:00",
+      "device": "cpu",
+      "yolo_providers": [
+        "CPUExecutionProvider"
+      ],
+      "video_job_ms": 14094.0,
+      "frames": 33,
+      "detections": 66,
+      "tracks": 2,
+      "attributed_detections": 66
+    },
+    "minicpm_cuda_video": {
+      "completed_at": "2026-08-03T01:43:06.266148+07:00",
+      "device": "cuda",
+      "yolo_providers": [
+        "CUDAExecutionProvider",
+        "CPUExecutionProvider"
+      ],
+      "video_job_ms": 28250.0,
+      "frames": 33,
+      "detections": 66,
+      "tracks": 2,
+      "attributed_detections": 66
+    }
+  },
+  "docker": {
+    "cpu_base": "python:3.11.9-slim-bookworm@sha256:8fb099199b9f2d70342674bd9dbccd3ed03a258f26bbd1d556822c6dfc60c317",
+    "gpu_base": "nvidia/cuda:12.8.1-cudnn-runtime-ubuntu24.04@sha256:ac55d124da4882b497f732d8dfd9a702d5447a5f29d08d56da6f64f0a1eb34bc"
+  }
+}

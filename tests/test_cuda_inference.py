@@ -17,7 +17,6 @@ from typing import Any
 
 from PIL import Image
 
-
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 MODELS_DIR = PROJECT_ROOT / "models"
 if str(PROJECT_ROOT / "src") not in sys.path:

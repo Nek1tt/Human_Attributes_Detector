@@ -56,6 +56,30 @@ class AttributeService:
             self._futures.pop(key, None)
         return dict(result)
 
+    def wait(self, task_id: str, track_id: int) -> dict[str, str] | None:
+        """Wait for one already-submitted prediction and store its normalized result."""
+
+        key = (task_id, track_id)
+        with self._lock:
+            result = self._results.get(key)
+            future = self._futures.get(key)
+        if result is not None:
+            return dict(result)
+        if future is None:
+            return None
+        try:
+            result = self.backend.normalize(future.result())
+        except Exception:
+            LOGGER.exception("Attribute inference failed for task=%s track=%s", task_id, track_id)
+            with self._lock:
+                self._failed.add(key)
+                self._futures.pop(key, None)
+            return None
+        with self._lock:
+            self._results[key] = result
+            self._futures.pop(key, None)
+        return dict(result)
+
     def drop_task(self, task_id: str) -> None:
         with self._lock:
             keys = {key for key in self._futures | self._results if key[0] == task_id}

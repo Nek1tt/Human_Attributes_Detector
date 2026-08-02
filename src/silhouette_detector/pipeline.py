@@ -4,10 +4,10 @@ from __future__ import annotations
 
 import json
 import os
+from collections.abc import Callable
 from dataclasses import asdict, dataclass, field
 from functools import lru_cache
 from pathlib import Path
-from typing import Callable
 
 import numpy as np
 from PIL import Image, ImageDraw, ImageFont
@@ -43,12 +43,14 @@ class FramePipeline:
         height: int,
         fps: float,
         min_track_frames: int,
+        synchronous_attributes: bool = False,
     ) -> None:
         self.task_id = task_id
         self.detector = detector
         self.attributes = attribute_service
         self.tracker = SFSORTTracker(width, height, fps)
         self.min_track_frames = min_track_frames
+        self.synchronous_attributes = synchronous_attributes
         self.memory: dict[int, TrackMemory] = {}
 
     @staticmethod
@@ -76,6 +78,10 @@ class FramePipeline:
                 crop = self._crop(frame, track)
                 if crop is not None:
                     memory.submitted = self.attributes.submit(self.task_id, track.track_id, crop)
+                    if memory.submitted and self.synchronous_attributes:
+                        completed = self.attributes.wait(self.task_id, track.track_id)
+                        if completed is not None:
+                            memory.attributes = completed
             results.append(
                 FrameResult(track.track_id, track.box, track.score, dict(memory.attributes))
             )
@@ -144,6 +150,7 @@ class VideoProcessor:
         min_track_frames: int,
         max_video_seconds: int,
         max_frame_pixels: int,
+        synchronous_attributes: bool = False,
     ) -> None:
         self.detector = detector
         self.attribute_service = attribute_service
@@ -151,6 +158,7 @@ class VideoProcessor:
         self.min_track_frames = min_track_frames
         self.max_video_seconds = max_video_seconds
         self.max_frame_pixels = max_frame_pixels
+        self.synchronous_attributes = synchronous_attributes
 
     def process(
         self,
@@ -193,6 +201,7 @@ class VideoProcessor:
             height,
             output_fps,
             self.min_track_frames,
+            self.synchronous_attributes,
         )
         sample_interval = max(1, round(source_fps / output_fps))
         source_index = 0

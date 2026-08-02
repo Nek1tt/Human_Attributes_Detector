@@ -8,7 +8,7 @@ from threading import Lock
 
 import numpy as np
 
-from .device import select_onnx_providers
+from .device import select_onnx_providers, validate_onnx_session_providers
 from .nms import class_aware_nms
 
 
@@ -29,11 +29,25 @@ class YoloOnnxDetector:
     ) -> None:
         if not model_path.is_file():
             raise FileNotFoundError(f"YOLO ONNX model not found: {model_path}")
+
+        # On Windows the CUDA/cuDNN DLLs bundled with the PyTorch wheel are not
+        # necessarily visible to ONNX Runtime in a fresh process.  Loading
+        # PyTorch before the ORT session is the officially supported bridge.
+        if device.lower() != "cpu":
+            try:
+                __import__("torch")
+            except ImportError:
+                # ORT may still use a system CUDA/cuDNN installation.
+                pass
         try:
             import onnxruntime as ort
         except ImportError as exc:
             raise RuntimeError("Install the cpu or gpu extra to use ONNX detection") from exc
         providers = select_onnx_providers(device, ort.get_available_providers())
+        if "CUDAExecutionProvider" in providers:
+            preload_dlls = getattr(ort, "preload_dlls", None)
+            if callable(preload_dlls):
+                preload_dlls()
         self.session = ort.InferenceSession(str(model_path), providers=providers)
         model_input = self.session.get_inputs()[0]
         self.input_name = model_input.name
@@ -43,7 +57,9 @@ class YoloOnnxDetector:
         self.input_width = int(shape[3]) if isinstance(shape[3], int) else 1024
         self.confidence = confidence
         self.iou_threshold = iou_threshold
-        self.providers = tuple(self.session.get_providers())
+        self.providers = validate_onnx_session_providers(
+            device, self.session.get_providers()
+        )
         self._lock = Lock()
 
     @staticmethod

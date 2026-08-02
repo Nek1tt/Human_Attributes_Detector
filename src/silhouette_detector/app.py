@@ -71,6 +71,7 @@ class JobManager:
                     min_track_frames=self.settings.min_track_frames,
                     max_video_seconds=self.settings.max_video_seconds,
                     max_frame_pixels=self.settings.max_frame_pixels,
+                    synchronous_attributes=self.settings.synchronous_attributes,
                 )
                 self._runtime_error = None
             except Exception as exc:
@@ -146,6 +147,7 @@ class JobManager:
             "initialization_failed": self._runtime_error is not None,
             "backend": self.settings.attribute_backend,
             "device": self.settings.device,
+            "synchronous_attributes": self.settings.synchronous_attributes,
         }
 
     def close(self) -> None:

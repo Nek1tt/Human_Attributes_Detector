@@ -27,7 +27,7 @@ jobs:
       - name: Set up Python
         uses: actions/setup-python@v5
         with:
-          python-version: "3.12"
+          python-version: "3.11.9"
           cache: pip
 
       - name: Upgrade pip
@@ -40,7 +40,7 @@ jobs:
         run: ruff check .
 
       - name: Check Python syntax
-        run: python -m compileall -q src tests
+        run: python -m compileall -q src tests scripts
 
       - name: Run unit tests
         run: python -m unittest discover -s tests -v
