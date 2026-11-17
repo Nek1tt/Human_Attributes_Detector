@@ -1,6 +1,6 @@
-# Проверки эксперимента Market-1501
+# Архив проверок Market-1501
 
-Проверки основного проекта на PETA находятся в [peta-results.md](peta-results.md).
+Проверки исходных моделей на PETA находятся в [original-results.md](original-results.md).
 
 17 ноября 2026. Windows, Python 3.12.10, PyTorch 2.8.0, CPU.
 
@@ -44,7 +44,7 @@ Checkpoint: `models/market_attributes.pt`, веса сохранены в DVC.
 - HTTP-предсказание совпадает с прямым вызовом модели.
 - Новый backend возвращает девять ключей существующего видеопайплайна.
 
-## Новая архитектура MiniCPM
+## Компактная модель MiniCPM из прежнего эксперимента
 
 Обучена Transformer-голова поверх визуального энкодера MiniCPM-o 2.6.
 Пять эпох, BF16, RTX 4060 Ti 16 ГБ. Лучший validation macro F1 — 0.6139,

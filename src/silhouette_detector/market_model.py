@@ -1,4 +1,4 @@
-"""One ResNet18 backbone and twelve attribute classifiers."""
+"""Attribute model factory, checkpoint loading and image prediction."""
 
 from pathlib import Path
 

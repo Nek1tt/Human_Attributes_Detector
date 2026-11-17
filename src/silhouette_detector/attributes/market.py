@@ -1,4 +1,4 @@
-"""Use the new Market-1501 checkpoint in the existing video pipeline."""
+"""Use trained PETA and Market-1501 classifiers in the video pipeline."""
 
 from threading import Lock
 
