@@ -2,34 +2,31 @@ version = 1
 revision = 5
 requires-python = ">=3.11, <3.13"
 resolution-markers = [
-    "python_full_version >= '3.12' and sys_platform == 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-export' and extra == 'extra-25-human-attributes-detector-gpu'",
+    "python_full_version >= '3.12' and sys_platform == 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu'",
+    "python_full_version >= '3.12' and sys_platform == 'emscripten' and extra != 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu'",
+    "python_full_version >= '3.12' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu'",
+    "python_full_version < '3.12' and sys_platform == 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu'",
+    "python_full_version < '3.12' and sys_platform == 'emscripten' and extra != 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu'",
+    "python_full_version < '3.12' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu'",
     "python_full_version >= '3.12' and sys_platform == 'win32' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
-    "python_full_version >= '3.12' and sys_platform == 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
-    "python_full_version >= '3.12' and sys_platform == 'emscripten' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-export' and extra == 'extra-25-human-attributes-detector-gpu'",
     "python_full_version >= '3.12' and sys_platform == 'emscripten' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
-    "python_full_version >= '3.12' and sys_platform == 'emscripten' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
-    "python_full_version >= '3.12' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-export' and extra == 'extra-25-human-attributes-detector-gpu'",
     "python_full_version >= '3.12' and ((platform_machine != 'aarch64' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu') or (platform_python_implementation != 'CPython' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'))",
     "python_full_version >= '3.12' and platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
-    "python_full_version >= '3.12' and sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
-    "python_full_version >= '3.12' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
-    "python_full_version < '3.12' and sys_platform == 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-export' and extra == 'extra-25-human-attributes-detector-gpu'",
     "python_full_version < '3.12' and sys_platform == 'win32' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
-    "python_full_version < '3.12' and sys_platform == 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
-    "python_full_version < '3.12' and sys_platform == 'emscripten' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-export' and extra == 'extra-25-human-attributes-detector-gpu'",
     "python_full_version < '3.12' and sys_platform == 'emscripten' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
-    "python_full_version < '3.12' and sys_platform == 'emscripten' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
-    "python_full_version < '3.12' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-export' and extra == 'extra-25-human-attributes-detector-gpu'",
     "python_full_version < '3.12' and ((platform_machine != 'aarch64' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu') or (platform_python_implementation != 'CPython' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'))",
     "python_full_version < '3.12' and platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
+    "python_full_version >= '3.12' and sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
     "python_full_version < '3.12' and sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
+    "python_full_version >= '3.12' and sys_platform == 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
+    "python_full_version >= '3.12' and sys_platform == 'emscripten' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
+    "python_full_version >= '3.12' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
+    "python_full_version < '3.12' and sys_platform == 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
+    "python_full_version < '3.12' and sys_platform == 'emscripten' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
     "python_full_version < '3.12' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
 ]
 conflicts = [[
     { package = "human-attributes-detector", extra = "cpu" },
-    { package = "human-attributes-detector", extra = "gpu" },
-], [
-    { package = "human-attributes-detector", extra = "export" },
     { package = "human-attributes-detector", extra = "gpu" },
 ]]
 
@@ -45,9 +42,9 @@ dependencies = [
     { name = "psutil" },
     { name = "pyyaml" },
     { name = "safetensors" },
-    { name = "torch", version = "2.8.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform != 'darwin' and extra == 'extra-25-human-attributes-detector-cpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform != 'darwin' and extra == 'extra-25-human-attributes-detector-cpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
     { name = "torch", version = "2.8.0+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" }, marker = "extra == 'extra-25-human-attributes-detector-gpu'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/42/09/7947691b7d44bfc739da4a44cc47d6a6d75e6fe9adf047c5234d7cb6be64/accelerate-1.2.1.tar.gz", hash = "sha256:03e161fc69d495daf2b9b5c8d5b43d06e2145520c04727b5bda56d49f1a43ab5", size = 341652, upload-time = "2024-12-13T18:54:33.73Z" }
@@ -517,16 +514,16 @@ name = "contourpy"
 version = "1.3.3"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "python_full_version < '3.12' and sys_platform == 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-export' and extra == 'extra-25-human-attributes-detector-gpu'",
+    "python_full_version < '3.12' and sys_platform == 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu'",
+    "python_full_version < '3.12' and sys_platform == 'emscripten' and extra != 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu'",
+    "python_full_version < '3.12' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu'",
     "python_full_version < '3.12' and sys_platform == 'win32' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
-    "python_full_version < '3.12' and sys_platform == 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
-    "python_full_version < '3.12' and sys_platform == 'emscripten' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-export' and extra == 'extra-25-human-attributes-detector-gpu'",
     "python_full_version < '3.12' and sys_platform == 'emscripten' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
-    "python_full_version < '3.12' and sys_platform == 'emscripten' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
-    "python_full_version < '3.12' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-export' and extra == 'extra-25-human-attributes-detector-gpu'",
     "python_full_version < '3.12' and ((platform_machine != 'aarch64' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu') or (platform_python_implementation != 'CPython' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'))",
     "python_full_version < '3.12' and platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
     "python_full_version < '3.12' and sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
+    "python_full_version < '3.12' and sys_platform == 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
+    "python_full_version < '3.12' and sys_platform == 'emscripten' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
     "python_full_version < '3.12' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
 ]
 dependencies = [
@@ -568,16 +565,16 @@ name = "contourpy"
 version = "1.4.0"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "python_full_version >= '3.12' and sys_platform == 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-export' and extra == 'extra-25-human-attributes-detector-gpu'",
+    "python_full_version >= '3.12' and sys_platform == 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu'",
+    "python_full_version >= '3.12' and sys_platform == 'emscripten' and extra != 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu'",
+    "python_full_version >= '3.12' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu'",
     "python_full_version >= '3.12' and sys_platform == 'win32' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
-    "python_full_version >= '3.12' and sys_platform == 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
-    "python_full_version >= '3.12' and sys_platform == 'emscripten' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-export' and extra == 'extra-25-human-attributes-detector-gpu'",
     "python_full_version >= '3.12' and sys_platform == 'emscripten' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
-    "python_full_version >= '3.12' and sys_platform == 'emscripten' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
-    "python_full_version >= '3.12' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-export' and extra == 'extra-25-human-attributes-detector-gpu'",
     "python_full_version >= '3.12' and ((platform_machine != 'aarch64' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu') or (platform_python_implementation != 'CPython' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'))",
     "python_full_version >= '3.12' and platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
     "python_full_version >= '3.12' and sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
+    "python_full_version >= '3.12' and sys_platform == 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
+    "python_full_version >= '3.12' and sys_platform == 'emscripten' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
     "python_full_version >= '3.12' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
 ]
 dependencies = [
@@ -981,9 +978,9 @@ dependencies = [
     { name = "einops" },
     { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
     { name = "numpy", version = "2.5.5", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
-    { name = "torch", version = "2.8.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform != 'darwin' and extra == 'extra-25-human-attributes-detector-cpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform != 'darwin' and extra == 'extra-25-human-attributes-detector-cpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
     { name = "torch", version = "2.8.0+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" }, marker = "extra == 'extra-25-human-attributes-detector-gpu'" },
     { name = "torchaudio" },
 ]
@@ -1470,10 +1467,10 @@ bot = [
 cpu = [
     { name = "onnxruntime" },
     { name = "opencv-python-headless" },
-    { name = "torch", version = "2.8.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform != 'darwin' and extra == 'extra-25-human-attributes-detector-cpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "torchvision", version = "0.23.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-cpu' or sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "torchvision", version = "0.23.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(platform_machine != 'aarch64' or platform_python_implementation != 'CPython') and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-cpu' or sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-25-human-attributes-detector-cpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform != 'darwin' and extra == 'extra-25-human-attributes-detector-cpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "torchvision", version = "0.23.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-cpu') or (sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "torchvision", version = "0.23.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(platform_machine != 'aarch64' or platform_python_implementation != 'CPython') and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-cpu' or sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu'" },
 ]
 dev = [
     { name = "black" },
@@ -1484,7 +1481,6 @@ dev = [
 ]
 export = [
     { name = "onnx" },
-    { name = "onnxruntime" },
 ]
 gpu = [
     { name = "onnxruntime-gpu" },
@@ -1565,7 +1561,6 @@ requires-dist = [
     { name = "numpy", specifier = ">=1.26,<3" },
     { name = "onnx", marker = "extra == 'export'", specifier = ">=1.17,<2" },
     { name = "onnxruntime", marker = "extra == 'cpu'", specifier = ">=1.28,<2" },
-    { name = "onnxruntime", marker = "extra == 'export'", specifier = ">=1.20,<2" },
     { name = "onnxruntime-gpu", marker = "extra == 'gpu'", specifier = "==1.26.0" },
     { name = "opencv-python-headless", marker = "extra == 'cpu'", specifier = ">=4.10,<5" },
     { name = "opencv-python-headless", marker = "extra == 'gpu'", specifier = ">=4.10,<5" },
@@ -1824,9 +1819,9 @@ dependencies = [
     { name = "packaging" },
     { name = "pytorch-lightning" },
     { name = "pyyaml" },
-    { name = "torch", version = "2.8.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform != 'darwin' and extra == 'extra-25-human-attributes-detector-cpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform != 'darwin' and extra == 'extra-25-human-attributes-detector-cpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
     { name = "torch", version = "2.8.0+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" }, marker = "extra == 'extra-25-human-attributes-detector-gpu'" },
     { name = "torchmetrics" },
     { name = "tqdm" },
@@ -1990,8 +1985,8 @@ name = "ml-dtypes"
 version = "0.7.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12' and extra != 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "numpy", version = "2.5.5", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12' and extra != 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
+    { name = "numpy", version = "2.5.5", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/bc/2d/4ce5532f433dfae6dc96ed4abd7a0e18106a63666bce8eb878d9ffdc0610/ml_dtypes-0.7.0.tar.gz", hash = "sha256:67fd890fb09d1e068cfe1b4dc8e204430ae7632102b4a4f854b093b6f02b3950", size = 4353024, upload-time = "2026-11-16T16:21:26.657Z" }
 wheels = [
@@ -2220,16 +2215,16 @@ name = "networkx"
 version = "3.6.1"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "python_full_version < '3.12' and sys_platform == 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-export' and extra == 'extra-25-human-attributes-detector-gpu'",
+    "python_full_version < '3.12' and sys_platform == 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu'",
+    "python_full_version < '3.12' and sys_platform == 'emscripten' and extra != 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu'",
+    "python_full_version < '3.12' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu'",
     "python_full_version < '3.12' and sys_platform == 'win32' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
-    "python_full_version < '3.12' and sys_platform == 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
-    "python_full_version < '3.12' and sys_platform == 'emscripten' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-export' and extra == 'extra-25-human-attributes-detector-gpu'",
     "python_full_version < '3.12' and sys_platform == 'emscripten' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
-    "python_full_version < '3.12' and sys_platform == 'emscripten' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
-    "python_full_version < '3.12' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-export' and extra == 'extra-25-human-attributes-detector-gpu'",
     "python_full_version < '3.12' and ((platform_machine != 'aarch64' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu') or (platform_python_implementation != 'CPython' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'))",
     "python_full_version < '3.12' and platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
     "python_full_version < '3.12' and sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
+    "python_full_version < '3.12' and sys_platform == 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
+    "python_full_version < '3.12' and sys_platform == 'emscripten' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
     "python_full_version < '3.12' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/6a/51/63fe664f3908c97be9d2e4f1158eb633317598cfa6e1fc14af5383f17512/networkx-3.6.1.tar.gz", hash = "sha256:26b7c357accc0c8cde558ad486283728b65b6a95d85ee1cd66bafab4c8168509", size = 2517025, upload-time = "2025-12-08T17:02:39.908Z" }
@@ -2242,16 +2237,16 @@ name = "networkx"
 version = "3.7"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "python_full_version >= '3.12' and sys_platform == 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-export' and extra == 'extra-25-human-attributes-detector-gpu'",
+    "python_full_version >= '3.12' and sys_platform == 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu'",
+    "python_full_version >= '3.12' and sys_platform == 'emscripten' and extra != 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu'",
+    "python_full_version >= '3.12' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu'",
     "python_full_version >= '3.12' and sys_platform == 'win32' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
-    "python_full_version >= '3.12' and sys_platform == 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
-    "python_full_version >= '3.12' and sys_platform == 'emscripten' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-export' and extra == 'extra-25-human-attributes-detector-gpu'",
     "python_full_version >= '3.12' and sys_platform == 'emscripten' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
-    "python_full_version >= '3.12' and sys_platform == 'emscripten' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
-    "python_full_version >= '3.12' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-export' and extra == 'extra-25-human-attributes-detector-gpu'",
     "python_full_version >= '3.12' and ((platform_machine != 'aarch64' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu') or (platform_python_implementation != 'CPython' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'))",
     "python_full_version >= '3.12' and platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
     "python_full_version >= '3.12' and sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
+    "python_full_version >= '3.12' and sys_platform == 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
+    "python_full_version >= '3.12' and sys_platform == 'emscripten' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
     "python_full_version >= '3.12' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/dc/76/3af777226b63a5e64a6b36b1ec5855c14e2b94a37096d4760e595fc43511/networkx-3.7.tar.gz", hash = "sha256:fd77a511bd90f39f3d016351345b52cf5319b813bdca01de3f755d3cca62e96a", size = 1866482, upload-time = "2026-09-21T16:45:16.974Z" }
@@ -2295,16 +2290,16 @@ name = "numpy"
 version = "2.4.6"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "python_full_version < '3.12' and sys_platform == 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-export' and extra == 'extra-25-human-attributes-detector-gpu'",
+    "python_full_version < '3.12' and sys_platform == 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu'",
+    "python_full_version < '3.12' and sys_platform == 'emscripten' and extra != 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu'",
+    "python_full_version < '3.12' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu'",
     "python_full_version < '3.12' and sys_platform == 'win32' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
-    "python_full_version < '3.12' and sys_platform == 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
-    "python_full_version < '3.12' and sys_platform == 'emscripten' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-export' and extra == 'extra-25-human-attributes-detector-gpu'",
     "python_full_version < '3.12' and sys_platform == 'emscripten' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
-    "python_full_version < '3.12' and sys_platform == 'emscripten' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
-    "python_full_version < '3.12' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-export' and extra == 'extra-25-human-attributes-detector-gpu'",
     "python_full_version < '3.12' and ((platform_machine != 'aarch64' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu') or (platform_python_implementation != 'CPython' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'))",
     "python_full_version < '3.12' and platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
     "python_full_version < '3.12' and sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
+    "python_full_version < '3.12' and sys_platform == 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
+    "python_full_version < '3.12' and sys_platform == 'emscripten' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
     "python_full_version < '3.12' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/d0/ad/fed0499ce6a338d2a03ebae59cd15093910c8875328855781952abf6c2fe/numpy-2.4.6.tar.gz", hash = "sha256:f3a3570c4a2a16746ac2c31a7c7c7b0c186b95ce902e33db6f28094ed7387dda", size = 20735807, upload-time = "2026-05-18T23:37:14.07Z" }
@@ -2345,16 +2340,16 @@ name = "numpy"
 version = "2.5.5"
 source = { registry = "https://pypi.org/simple" }
 resolution-markers = [
-    "python_full_version >= '3.12' and sys_platform == 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-export' and extra == 'extra-25-human-attributes-detector-gpu'",
+    "python_full_version >= '3.12' and sys_platform == 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu'",
+    "python_full_version >= '3.12' and sys_platform == 'emscripten' and extra != 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu'",
+    "python_full_version >= '3.12' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu'",
     "python_full_version >= '3.12' and sys_platform == 'win32' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
-    "python_full_version >= '3.12' and sys_platform == 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
-    "python_full_version >= '3.12' and sys_platform == 'emscripten' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-export' and extra == 'extra-25-human-attributes-detector-gpu'",
     "python_full_version >= '3.12' and sys_platform == 'emscripten' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
-    "python_full_version >= '3.12' and sys_platform == 'emscripten' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
-    "python_full_version >= '3.12' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-export' and extra == 'extra-25-human-attributes-detector-gpu'",
     "python_full_version >= '3.12' and ((platform_machine != 'aarch64' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu') or (platform_python_implementation != 'CPython' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'))",
     "python_full_version >= '3.12' and platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
     "python_full_version >= '3.12' and sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
+    "python_full_version >= '3.12' and sys_platform == 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
+    "python_full_version >= '3.12' and sys_platform == 'emscripten' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
     "python_full_version >= '3.12' and sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu'",
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/4e/3a/8770c288c47f0b5c2a786d3c20e79f66fd245f2d42cd232d7cd5e00e83e5/numpy-2.5.5.tar.gz", hash = "sha256:5cddc243c75114ba845f01b1f87aca1572dbf7b6c2d88636ed3e1d2bccd7f1bf", size = 20873892, upload-time = "2026-11-15T21:32:28.607Z" }
@@ -2417,7 +2412,7 @@ name = "nvidia-cudnn-cu12"
 version = "9.10.2.21"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "nvidia-cublas-cu12", marker = "sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-25-human-attributes-detector-cpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
+    { name = "nvidia-cublas-cu12" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/fa/41/e79269ce215c857c935fd86bcfe91a451a584dfc27f1e068f568b9ad1ab7/nvidia_cudnn_cu12-9.10.2.21-py3-none-manylinux_2_27_aarch64.whl", hash = "sha256:c9132cc3f8958447b4910a1720036d9eff5928cc3179b0a51fb6d167c6cc87d8", size = 705026878, upload-time = "2025-06-06T21:52:51.348Z" },
@@ -2430,7 +2425,7 @@ name = "nvidia-cufft-cu12"
 version = "11.3.3.83"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "nvidia-nvjitlink-cu12", marker = "sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-25-human-attributes-detector-cpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
+    { name = "nvidia-nvjitlink-cu12" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/60/bc/7771846d3a0272026c416fbb7e5f4c1f146d6d80704534d0b187dd6f4800/nvidia_cufft_cu12-11.3.3.83-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:848ef7224d6305cdb2a4df928759dca7b1201874787083b6e7550dd6765ce69a", size = 193109211, upload-time = "2025-03-07T01:44:56.873Z" },
@@ -2462,9 +2457,9 @@ name = "nvidia-cusolver-cu12"
 version = "11.7.3.90"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "nvidia-cublas-cu12", marker = "sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-25-human-attributes-detector-cpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "nvidia-cusparse-cu12", marker = "sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-25-human-attributes-detector-cpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "nvidia-nvjitlink-cu12", marker = "sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-25-human-attributes-detector-cpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
+    { name = "nvidia-cublas-cu12" },
+    { name = "nvidia-cusparse-cu12" },
+    { name = "nvidia-nvjitlink-cu12" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/c8/32/f7cd6ce8a7690544d084ea21c26e910a97e077c9b7f07bf5de623ee19981/nvidia_cusolver_cu12-11.7.3.90-py3-none-manylinux_2_27_aarch64.whl", hash = "sha256:db9ed69dbef9715071232caa9b69c52ac7de3a95773c2db65bdba85916e4e5c0", size = 267229841, upload-time = "2025-03-07T01:46:54.356Z" },
@@ -2477,7 +2472,7 @@ name = "nvidia-cusparse-cu12"
 version = "12.5.8.93"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "nvidia-nvjitlink-cu12", marker = "sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-25-human-attributes-detector-cpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
+    { name = "nvidia-nvjitlink-cu12" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/bc/f7/cd777c4109681367721b00a106f491e0d0d15cfa1fd59672ce580ce42a97/nvidia_cusparse_cu12-12.5.8.93-py3-none-manylinux2014_aarch64.manylinux_2_17_aarch64.whl", hash = "sha256:9b6c161cb130be1a07a27ea6923df8141f3c295852f4b260c65f18f3e0a091dc", size = 288117129, upload-time = "2025-03-07T01:47:40.407Z" },
@@ -2543,8 +2538,8 @@ version = "1.23.2"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "ml-dtypes" },
-    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12' and extra != 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "numpy", version = "2.5.5", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12' and extra != 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
+    { name = "numpy", version = "2.5.5", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
     { name = "protobuf" },
     { name = "typing-extensions" },
 ]
@@ -2571,8 +2566,8 @@ version = "1.32.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "flatbuffers" },
-    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12' and extra != 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "numpy", version = "2.5.5", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12' and extra != 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version < '3.12' and extra == 'extra-25-human-attributes-detector-cpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "numpy", version = "2.5.5", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version >= '3.12' and extra == 'extra-25-human-attributes-detector-cpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
     { name = "packaging" },
     { name = "protobuf" },
 ]
@@ -2595,8 +2590,8 @@ version = "1.26.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "flatbuffers" },
-    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version < '3.12' or extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "numpy", version = "2.5.5", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version >= '3.12' or extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version < '3.12' or extra == 'extra-25-human-attributes-detector-cpu') and extra == 'extra-25-human-attributes-detector-gpu'" },
+    { name = "numpy", version = "2.5.5", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version >= '3.12' or extra == 'extra-25-human-attributes-detector-cpu') and extra == 'extra-25-human-attributes-detector-gpu'" },
     { name = "packaging" },
     { name = "protobuf" },
 ]
@@ -2612,8 +2607,8 @@ name = "opencv-python-headless"
 version = "4.14.0.94"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12' and (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "numpy", version = "2.5.5", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12' and (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12' and (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-gpu') or extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu'" },
+    { name = "numpy", version = "2.5.5", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12' and (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-gpu') or extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/67/8a/51ff1c6287be0b6cd3070cf095875da4ff7d6eda38507e6ada5608786a78/opencv_python_headless-4.14.0.94.tar.gz", hash = "sha256:4afa2ea1214453648be88259f035712454faa9039b686de7753569ba8eec1577", size = 96405664, upload-time = "2026-07-28T19:23:48.758Z" }
 wheels = [
@@ -2768,9 +2763,9 @@ dependencies = [
     { name = "psutil" },
     { name = "pyyaml" },
     { name = "safetensors" },
-    { name = "torch", version = "2.8.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform != 'darwin' and extra == 'extra-25-human-attributes-detector-cpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform != 'darwin' and extra == 'extra-25-human-attributes-detector-cpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
     { name = "torch", version = "2.8.0+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" }, marker = "extra == 'extra-25-human-attributes-detector-gpu'" },
     { name = "tqdm" },
     { name = "transformers" },
@@ -3252,9 +3247,9 @@ dependencies = [
     { name = "lightning-utilities" },
     { name = "packaging" },
     { name = "pyyaml" },
-    { name = "torch", version = "2.8.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform != 'darwin' and extra == 'extra-25-human-attributes-detector-cpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform != 'darwin' and extra == 'extra-25-human-attributes-detector-cpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
     { name = "torch", version = "2.8.0+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" }, marker = "extra == 'extra-25-human-attributes-detector-gpu'" },
     { name = "torchmetrics" },
     { name = "tqdm" },
@@ -3764,13 +3759,13 @@ dependencies = [
     { name = "huggingface-hub" },
     { name = "pyyaml" },
     { name = "safetensors" },
-    { name = "torch", version = "2.8.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform != 'darwin' and extra == 'extra-25-human-attributes-detector-cpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform != 'darwin' and extra == 'extra-25-human-attributes-detector-cpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
     { name = "torch", version = "2.8.0+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" }, marker = "extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "torchvision", version = "0.23.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-cpu' or sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "torchvision", version = "0.23.0", source = { registry = "https://pypi.org/simple" }, marker = "extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "torchvision", version = "0.23.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(platform_machine != 'aarch64' or platform_python_implementation != 'CPython') and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-cpu' or sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-25-human-attributes-detector-cpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
+    { name = "torchvision", version = "0.23.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-cpu') or (sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "torchvision", version = "0.23.0", source = { registry = "https://pypi.org/simple" }, marker = "(extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "torchvision", version = "0.23.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(platform_machine != 'aarch64' or platform_python_implementation != 'CPython') and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-cpu' or sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu'" },
     { name = "torchvision", version = "0.23.0+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" }, marker = "extra == 'extra-25-human-attributes-detector-gpu'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/c8/fd/742a9b4f4a896cef7f066dd8b146bf5682317261f0b71bab2b35928a98bd/timm-0.9.10.tar.gz", hash = "sha256:581dacc867398327ab2f77470fae6eee09a0c5d1d838bd9bced21ce0057edfd9", size = 2126590, upload-time = "2023-11-04T15:17:28.77Z" }
@@ -3831,14 +3826,14 @@ resolution-markers = [
     "python_full_version < '3.12' and sys_platform == 'darwin'",
 ]
 dependencies = [
-    { name = "filelock", marker = "sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "fsspec", marker = "sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "jinja2", marker = "sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "networkx", version = "3.6.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12' and sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "networkx", version = "3.7", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12' and sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "setuptools", marker = "python_full_version >= '3.12' and sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "sympy", marker = "sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "typing-extensions", marker = "sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
+    { name = "filelock", marker = "(sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "fsspec", marker = "(sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "jinja2", marker = "(sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "networkx", version = "3.6.1", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version < '3.12' and sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "networkx", version = "3.7", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version >= '3.12' and sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "setuptools", marker = "(python_full_version >= '3.12' and sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "sympy", marker = "(sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "typing-extensions", marker = "(sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
 ]
 wheels = [
     { url = "https://download-r2.pytorch.org/whl/cpu/torch-2.8.0-cp311-none-macosx_11_0_arm64.whl", hash = "sha256:3d05017d19bc99741288e458888283a44b0ee881d53f05f72f8b1cfea8998122", upload-time = "2025-10-01T23:35:48Z" },
@@ -3858,29 +3853,29 @@ resolution-markers = [
     "python_full_version < '3.12' and sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 dependencies = [
-    { name = "filelock", marker = "extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "fsspec", marker = "extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "jinja2", marker = "extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "networkx", version = "3.6.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "networkx", version = "3.7", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "nvidia-cublas-cu12", marker = "platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "nvidia-cuda-cupti-cu12", marker = "platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "nvidia-cuda-nvrtc-cu12", marker = "platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "nvidia-cuda-runtime-cu12", marker = "platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "nvidia-cudnn-cu12", marker = "platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "nvidia-cufft-cu12", marker = "platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "nvidia-cufile-cu12", marker = "platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "nvidia-curand-cu12", marker = "platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "nvidia-cusolver-cu12", marker = "platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "nvidia-cusparse-cu12", marker = "platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "nvidia-cusparselt-cu12", marker = "platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "nvidia-nccl-cu12", marker = "platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "nvidia-nvjitlink-cu12", marker = "platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "nvidia-nvtx-cu12", marker = "platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "setuptools", marker = "python_full_version >= '3.12' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "sympy", marker = "extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "triton", marker = "platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "typing-extensions", marker = "extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
+    { name = "filelock", marker = "(extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "fsspec", marker = "(extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "jinja2", marker = "(extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "networkx", version = "3.6.1", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version < '3.12' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "networkx", version = "3.7", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version >= '3.12' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "nvidia-cublas-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "nvidia-cuda-cupti-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "nvidia-cuda-nvrtc-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "nvidia-cuda-runtime-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "nvidia-cudnn-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "nvidia-cufft-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "nvidia-cufile-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "nvidia-curand-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "nvidia-cusolver-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "nvidia-cusparse-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "nvidia-cusparselt-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "nvidia-nccl-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "nvidia-nvjitlink-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "nvidia-nvtx-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "setuptools", marker = "(python_full_version >= '3.12' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "sympy", marker = "(extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "triton", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "typing-extensions", marker = "(extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/8f/c4/3e7a3887eba14e815e614db70b3b529112d1513d9dae6f4d43e373360b7f/torch-2.8.0-cp311-cp311-manylinux_2_28_aarch64.whl", hash = "sha256:220a06fd7af8b653c35d359dfe1aaf32f65aa85befa342629f716acb134b9710", size = 102073391, upload-time = "2025-08-06T14:53:20.937Z" },
@@ -3908,14 +3903,14 @@ resolution-markers = [
     "python_full_version < '3.12' and platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux'",
 ]
 dependencies = [
-    { name = "filelock", marker = "sys_platform != 'darwin' and extra == 'extra-25-human-attributes-detector-cpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "fsspec", marker = "sys_platform != 'darwin' and extra == 'extra-25-human-attributes-detector-cpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "jinja2", marker = "sys_platform != 'darwin' and extra == 'extra-25-human-attributes-detector-cpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "networkx", version = "3.6.1", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12' and sys_platform != 'darwin' and extra == 'extra-25-human-attributes-detector-cpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "networkx", version = "3.7", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12' and sys_platform != 'darwin' and extra == 'extra-25-human-attributes-detector-cpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "setuptools", marker = "python_full_version >= '3.12' and sys_platform != 'darwin' and extra == 'extra-25-human-attributes-detector-cpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "sympy", marker = "sys_platform != 'darwin' and extra == 'extra-25-human-attributes-detector-cpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "typing-extensions", marker = "sys_platform != 'darwin' and extra == 'extra-25-human-attributes-detector-cpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
+    { name = "filelock", marker = "(sys_platform != 'darwin' and extra == 'extra-25-human-attributes-detector-cpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "fsspec", marker = "(sys_platform != 'darwin' and extra == 'extra-25-human-attributes-detector-cpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "jinja2", marker = "(sys_platform != 'darwin' and extra == 'extra-25-human-attributes-detector-cpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "networkx", version = "3.6.1", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version < '3.12' and sys_platform != 'darwin' and extra == 'extra-25-human-attributes-detector-cpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "networkx", version = "3.7", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version >= '3.12' and sys_platform != 'darwin' and extra == 'extra-25-human-attributes-detector-cpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "setuptools", marker = "(python_full_version >= '3.12' and sys_platform != 'darwin' and extra == 'extra-25-human-attributes-detector-cpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "sympy", marker = "(sys_platform != 'darwin' and extra == 'extra-25-human-attributes-detector-cpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "typing-extensions", marker = "(sys_platform != 'darwin' and extra == 'extra-25-human-attributes-detector-cpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
 ]
 wheels = [
     { url = "https://download-r2.pytorch.org/whl/cpu/torch-2.8.0%2Bcpu-cp311-cp311-linux_s390x.whl", hash = "sha256:2bfc013dd6efdc8f8223a0241d3529af9f315dffefb53ffa3bf14d3f10127da6", upload-time = "2025-10-01T23:33:07Z" },
@@ -3946,25 +3941,25 @@ dependencies = [
     { name = "filelock", marker = "extra == 'extra-25-human-attributes-detector-gpu'" },
     { name = "fsspec", marker = "extra == 'extra-25-human-attributes-detector-gpu'" },
     { name = "jinja2", marker = "extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "networkx", version = "3.6.1", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version < '3.12' or extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "networkx", version = "3.7", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version >= '3.12' or extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "nvidia-cublas-cu12", marker = "platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "nvidia-cuda-cupti-cu12", marker = "platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "nvidia-cuda-nvrtc-cu12", marker = "platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "nvidia-cuda-runtime-cu12", marker = "platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "nvidia-cudnn-cu12", marker = "platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "nvidia-cufft-cu12", marker = "platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "nvidia-cufile-cu12", marker = "platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "nvidia-curand-cu12", marker = "platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "nvidia-cusolver-cu12", marker = "platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "nvidia-cusparse-cu12", marker = "platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "nvidia-cusparselt-cu12", marker = "platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "nvidia-nccl-cu12", marker = "platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "nvidia-nvjitlink-cu12", marker = "platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "nvidia-nvtx-cu12", marker = "platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "setuptools", marker = "(python_full_version >= '3.12' or extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
+    { name = "networkx", version = "3.6.1", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version < '3.12' or extra == 'extra-25-human-attributes-detector-cpu') and extra == 'extra-25-human-attributes-detector-gpu'" },
+    { name = "networkx", version = "3.7", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version >= '3.12' or extra == 'extra-25-human-attributes-detector-cpu') and extra == 'extra-25-human-attributes-detector-gpu'" },
+    { name = "nvidia-cublas-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "nvidia-cuda-cupti-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "nvidia-cuda-nvrtc-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "nvidia-cuda-runtime-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "nvidia-cudnn-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "nvidia-cufft-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "nvidia-cufile-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "nvidia-curand-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "nvidia-cusolver-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "nvidia-cusparse-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "nvidia-cusparselt-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "nvidia-nccl-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "nvidia-nvjitlink-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "nvidia-nvtx-cu12", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "setuptools", marker = "(python_full_version >= '3.12' or extra == 'extra-25-human-attributes-detector-cpu') and extra == 'extra-25-human-attributes-detector-gpu'" },
     { name = "sympy", marker = "extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "triton", marker = "platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
+    { name = "triton", marker = "(platform_machine == 'x86_64' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
     { name = "typing-extensions", marker = "extra == 'extra-25-human-attributes-detector-gpu'" },
 ]
 wheels = [
@@ -3979,9 +3974,9 @@ name = "torchaudio"
 version = "2.8.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "torch", version = "2.8.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform != 'darwin' and extra == 'extra-25-human-attributes-detector-cpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform != 'darwin' and extra == 'extra-25-human-attributes-detector-cpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
     { name = "torch", version = "2.8.0+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" }, marker = "extra == 'extra-25-human-attributes-detector-gpu'" },
 ]
 wheels = [
@@ -4004,9 +3999,9 @@ dependencies = [
     { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12'" },
     { name = "numpy", version = "2.5.5", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
     { name = "packaging" },
-    { name = "torch", version = "2.8.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform != 'darwin' and extra == 'extra-25-human-attributes-detector-cpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform != 'darwin' and extra == 'extra-25-human-attributes-detector-cpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
     { name = "torch", version = "2.8.0+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" }, marker = "extra == 'extra-25-human-attributes-detector-gpu'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/81/34/39b8b749333db56c0585d7a11fa62a283c087bb1dfc897d69fb8cedbefb1/torchmetrics-1.9.0.tar.gz", hash = "sha256:a488609948600df52d3db4fcdab02e62aab2a85ef34da67037dc3e65b8512faa", size = 581765, upload-time = "2026-03-09T17:41:22.443Z" }
@@ -4020,16 +4015,16 @@ version = "0.23.0"
 source = { registry = "https://download.pytorch.org/whl/cpu" }
 resolution-markers = [
     "python_full_version >= '3.12' and platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux'",
-    "python_full_version >= '3.12' and sys_platform == 'darwin'",
     "python_full_version < '3.12' and platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux'",
+    "python_full_version >= '3.12' and sys_platform == 'darwin'",
     "python_full_version < '3.12' and sys_platform == 'darwin'",
 ]
 dependencies = [
-    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12' and ((platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-cpu') or (sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu')) or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "numpy", version = "2.5.5", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12' and ((platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-cpu') or (sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu')) or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "pillow", marker = "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-cpu' or sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "torch", version = "2.8.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-cpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12' and ((platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-cpu') or (sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu')) or extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu'" },
+    { name = "numpy", version = "2.5.5", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12' and ((platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-cpu') or (sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu')) or extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu'" },
+    { name = "pillow", marker = "(platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-cpu') or (sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(platform_machine == 'aarch64' and platform_python_implementation == 'CPython' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-cpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
 ]
 wheels = [
     { url = "https://download-r2.pytorch.org/whl/cpu/torchvision-0.23.0-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:49aa20e21f0c2bd458c71d7b449776cbd5f16693dd5807195a820612b8a229b7", upload-time = "2025-08-05T20:11:47Z" },
@@ -4051,10 +4046,10 @@ resolution-markers = [
     "python_full_version < '3.12' and sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 dependencies = [
-    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "numpy", version = "2.5.5", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "pillow", marker = "extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version < '3.12' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "numpy", version = "2.5.5", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version >= '3.12' and extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "pillow", marker = "(extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/f0/d7/15d3d7bd8d0239211b21673d1bac7bc345a4ad904a8e25bb3fd8a9cf1fbc/torchvision-0.23.0-cp311-cp311-macosx_11_0_arm64.whl", hash = "sha256:49aa20e21f0c2bd458c71d7b449776cbd5f16693dd5807195a820612b8a229b7", size = 1856884, upload-time = "2025-08-06T14:58:00.237Z" },
@@ -4080,10 +4075,10 @@ resolution-markers = [
     "python_full_version < '3.12' and ((platform_machine != 'aarch64' and sys_platform == 'linux') or (platform_python_implementation != 'CPython' and sys_platform == 'linux') or (sys_platform != 'darwin' and sys_platform != 'emscripten' and sys_platform != 'linux' and sys_platform != 'win32'))",
 ]
 dependencies = [
-    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12' and ((platform_machine != 'aarch64' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-cpu') or (platform_python_implementation != 'CPython' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-cpu') or (sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-25-human-attributes-detector-cpu')) or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "numpy", version = "2.5.5", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12' and ((platform_machine != 'aarch64' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-cpu') or (platform_python_implementation != 'CPython' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-cpu') or (sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-25-human-attributes-detector-cpu')) or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "pillow", marker = "(platform_machine != 'aarch64' or platform_python_implementation != 'CPython') and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-cpu' or sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-25-human-attributes-detector-cpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(platform_machine != 'aarch64' or platform_python_implementation != 'CPython') and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-cpu' or sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-25-human-attributes-detector-cpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version < '3.12' and ((platform_machine != 'aarch64' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-cpu') or (platform_python_implementation != 'CPython' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-cpu') or (sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-25-human-attributes-detector-cpu')) or extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu'" },
+    { name = "numpy", version = "2.5.5", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12' and ((platform_machine != 'aarch64' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-cpu') or (platform_python_implementation != 'CPython' and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-cpu') or (sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-25-human-attributes-detector-cpu')) or extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu'" },
+    { name = "pillow", marker = "(platform_machine != 'aarch64' or platform_python_implementation != 'CPython') and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-cpu' or sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu'" },
+    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(platform_machine != 'aarch64' or platform_python_implementation != 'CPython') and sys_platform == 'linux' and extra == 'extra-25-human-attributes-detector-cpu' or sys_platform != 'darwin' and sys_platform != 'linux' and extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu'" },
 ]
 wheels = [
     { url = "https://download-r2.pytorch.org/whl/cpu/torchvision-0.23.0%2Bcpu-cp311-cp311-manylinux_2_28_x86_64.whl", hash = "sha256:d83d8075db43b8ca89680bdeb2f100c832e2a3aa61ee42c038b1a146e5e511b6", upload-time = "2025-08-05T20:11:47Z" },
@@ -4105,8 +4100,8 @@ resolution-markers = [
     "python_full_version < '3.12' and sys_platform != 'emscripten' and sys_platform != 'win32'",
 ]
 dependencies = [
-    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version < '3.12' or extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "numpy", version = "2.5.5", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version >= '3.12' or extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
+    { name = "numpy", version = "2.4.6", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version < '3.12' or extra == 'extra-25-human-attributes-detector-cpu') and extra == 'extra-25-human-attributes-detector-gpu'" },
+    { name = "numpy", version = "2.5.5", source = { registry = "https://pypi.org/simple" }, marker = "(python_full_version >= '3.12' or extra == 'extra-25-human-attributes-detector-cpu') and extra == 'extra-25-human-attributes-detector-gpu'" },
     { name = "pillow", marker = "extra == 'extra-25-human-attributes-detector-gpu'" },
     { name = "torch", version = "2.8.0+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" }, marker = "extra == 'extra-25-human-attributes-detector-gpu'" },
 ]
@@ -4156,7 +4151,7 @@ name = "triton"
 version = "3.4.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
-    { name = "setuptools", marker = "sys_platform != 'emscripten' and sys_platform != 'win32' and extra != 'extra-25-human-attributes-detector-cpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
+    { name = "setuptools" },
 ]
 wheels = [
     { url = "https://files.pythonhosted.org/packages/7d/39/43325b3b651d50187e591eefa22e236b2981afcebaefd4f2fc0ea99df191/triton-3.4.0-cp311-cp311-manylinux_2_27_x86_64.manylinux_2_28_x86_64.whl", hash = "sha256:7b70f5e6a41e52e48cfc087436c8a28c17ff98db369447bcaff3b887a3ab4467", size = 155531138, upload-time = "2025-07-30T19:58:29.908Z" },
@@ -4264,9 +4259,9 @@ source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "einops" },
     { name = "einx" },
-    { name = "torch", version = "2.8.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform != 'darwin' and extra == 'extra-25-human-attributes-detector-cpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform != 'darwin' and extra == 'extra-25-human-attributes-detector-cpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
     { name = "torch", version = "2.8.0+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" }, marker = "extra == 'extra-25-human-attributes-detector-gpu'" },
 ]
 sdist = { url = "https://files.pythonhosted.org/packages/c7/a4/46b4c4a2683c029b31f2e1c6b525605e68d7586473f700acd077ec5e2e6b/vector_quantize_pytorch-1.18.5.tar.gz", hash = "sha256:8eafc155b5bbdfa1493bb55771cd6a34a31f4528231c67c597876c2ba7ca674f", size = 593774, upload-time = "2024-10-16T13:58:50.748Z" }
@@ -4311,9 +4306,9 @@ dependencies = [
     { name = "numpy", version = "2.5.5", source = { registry = "https://pypi.org/simple" }, marker = "python_full_version >= '3.12'" },
     { name = "pyyaml" },
     { name = "scipy" },
-    { name = "torch", version = "2.8.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
-    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "sys_platform != 'darwin' and extra == 'extra-25-human-attributes-detector-cpu' or (extra == 'extra-25-human-attributes-detector-cpu' or extra == 'extra-25-human-attributes-detector-export') and extra == 'extra-25-human-attributes-detector-gpu'" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform == 'darwin' and extra == 'extra-25-human-attributes-detector-cpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "torch", version = "2.8.0", source = { registry = "https://pypi.org/simple" }, marker = "(extra != 'extra-25-human-attributes-detector-cpu' and extra != 'extra-25-human-attributes-detector-gpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
+    { name = "torch", version = "2.8.0+cpu", source = { registry = "https://download.pytorch.org/whl/cpu" }, marker = "(sys_platform != 'darwin' and extra == 'extra-25-human-attributes-detector-cpu') or (extra == 'extra-25-human-attributes-detector-cpu' and extra == 'extra-25-human-attributes-detector-gpu')" },
     { name = "torch", version = "2.8.0+cu128", source = { registry = "https://download.pytorch.org/whl/cu128" }, marker = "extra == 'extra-25-human-attributes-detector-gpu'" },
     { name = "torchaudio" },
 ]

@@ -1,0 +1,8 @@
+{
+  "name": "original-resnet-standard",
+  "family": "resnet",
+  "checkpoint": "models\\original_resnet_peta.pt",
+  "validation_accuracy": 0.7831764817237854,
+  "validation_macro_f1": 0.5622994303703308,
+  "epoch": 3
+}

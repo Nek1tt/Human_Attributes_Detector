@@ -129,8 +129,9 @@ def main(steps, epochs, output):
         del model, optimizer, train_loader, validation_loader
         gc.collect()
         torch.cuda.empty_cache()
-    report["estimated_training_seconds"] = 2 * sum(
-        stage["estimated_stage_seconds"] for stage in report["stages"].values()
+    report["estimated_training_seconds"] = (
+        2 * report["stages"]["nine_resnet50"]["estimated_stage_seconds"]
+        + 3 * report["stages"]["original_transformer"]["estimated_stage_seconds"]
     )
     resnet_bytes = report["stages"]["nine_resnet50"]["weights_bytes"]
     transformer_bytes = report["stages"]["original_transformer"]["weights_bytes"]
@@ -138,7 +139,7 @@ def main(steps, epochs, output):
         7 * resnet_bytes, 3 * resnet_bytes + 7 * transformer_bytes
     )
     report["note"] = (
-        "Two experiments per architecture; embeddings and visual weights are prepared separately"
+        "Two ResNet experiments and three Transformer stages; embeddings are prepared separately"
     )
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(report, indent=2), encoding="utf-8")

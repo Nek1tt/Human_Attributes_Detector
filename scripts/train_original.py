@@ -29,6 +29,8 @@ def import_weights(source, destination):
         if payload["source_sha256"] != file_hash(source):
             raise ValueError(f"Different initial checkpoint already exists: {destination}")
         return str(destination)
+    if shutil.disk_usage(destination.parent).free < 3 * source.stat().st_size + 8 * 1024**3:
+        raise RuntimeError("Not enough space for initial weights, DVC copies and an 8 GiB reserve")
     payload = torch.load(source, map_location="cpu", weights_only=True, mmap=True)
     state = payload.get("model_state_dict", payload)
     torch.save(

@@ -1,0 +1,8 @@
+{
+  "name": "original-transformer-standard",
+  "family": "transformer",
+  "checkpoint": "models\\original_transformer_peta.pt",
+  "validation_accuracy": 0.798314094543457,
+  "validation_macro_f1": 0.6079453825950623,
+  "epoch": 1
+}

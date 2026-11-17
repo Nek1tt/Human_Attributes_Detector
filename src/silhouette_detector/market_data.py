@@ -122,7 +122,11 @@ def ensure_data(config):
     pointer = Path(str(root) + ".dvc")
     if not pointer.exists() or not Path(config.remote).exists():
         download_data(config)
-    dvc_command("pull", pointer)
+    try:
+        dvc_command("pull", pointer)
+    except subprocess.CalledProcessError:
+        download_data(config)
+        dvc_command("pull", pointer)
     return root
 
 

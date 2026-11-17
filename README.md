@@ -67,7 +67,7 @@ git clone --recurse-submodules https://github.com/Nek1tt/Human_Attributes_Detect
 cd Human_Attributes_Detector
 git switch detector-remaster
 python -m pip install uv
-uv sync --locked --extra gpu --extra train --extra dev --extra vision --extra api
+uv sync --locked --extra gpu --extra train --extra dev --extra vision --extra api --extra export
 uv run --no-sync pre-commit install
 uv run --no-sync pre-commit run -a
 ```
@@ -160,6 +160,16 @@ uv run --no-sync python scripts/request_prediction.py person.jpg
 `HAD_DEVICE=cuda`. Для повторной упаковки укажите новую папку
 через `production.mlflow_model`.
 Дополнительные команды `had tensorrt` и `had triton` требуют установленного NVIDIA ПО.
+
+При установленных TensorRT и Triton для ResNet:
+
+```bash
+uv run --no-sync had export
+uv run --no-sync had tensorrt production.max_batch_size=8
+uv run --no-sync had triton
+tritonserver --model-repository=var/triton-models
+uv run --no-sync python scripts/request_triton.py person.jpg
+```
 
 ## Infer
 
