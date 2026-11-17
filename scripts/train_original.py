@@ -108,9 +108,17 @@ def main(
             initial[name] = import_weights(source, imported)
         else:
             pointer = Path(str(imported) + ".dvc")
-            if pointer.exists():
-                dvc_command("pull", pointer)
+            if pointer.exists() and not imported.exists():
+                digest = yaml.safe_load(pointer.read_text())["outs"][0]["md5"]
+                objects = [
+                    Path(directory) / digest[:2] / digest[2:]
+                    for directory in [".dvc/cache/files/md5", ".dvc-storage/files/md5"]
+                ]
+                if any(path.exists() for path in objects):
+                    dvc_command("pull", pointer)
             initial[name] = str(imported) if imported.exists() else None
+            if initial[name] is None:
+                print(f"No old {name} weights: using public initialization", flush=True)
     if only in {"all", "transformer"} and not skip_extraction:
         run("original-download")
         run("original-extract")

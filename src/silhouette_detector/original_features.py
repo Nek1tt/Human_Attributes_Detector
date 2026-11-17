@@ -2,6 +2,7 @@
 
 import json
 import shutil
+import subprocess
 import time
 from pathlib import Path
 
@@ -112,7 +113,17 @@ def ensure_embeddings(config):
     root = Path(config.embeddings.root)
     pointer = Path(str(root) + ".dvc")
     if pointer.exists():
-        dvc_command("pull", pointer)
+        try:
+            dvc_command("pull", pointer)
+        except subprocess.CalledProcessError:
+            print(
+                "Cached embeddings are unavailable; rebuilding from the public PETA images",
+                flush=True,
+            )
+    if not (Path(config.embeddings.visual_directory) / "visual.safetensors").exists():
+        from .original_visual import download_original_visual
+
+        download_original_visual(config.embeddings.visual_directory)
     if not (root / "metadata.json").exists():
         return extract_original_features(config)
     if not json.loads((root / "metadata.json").read_text())["complete"]:
