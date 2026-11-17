@@ -1,31 +1,35 @@
-# Model files
+# Веса моделей
 
-Place private/large artifacts here. They are intentionally ignored by Git.
+Файлы весов не добавляются в Git. Их DVC-указатели находятся в этой папке.
 
-`market_attributes.pt` is created by `had train` and stored in DVC.
-`had export` creates `market_attributes.onnx`. See the root README for commands.
+Основные модели после обучения на PETA:
 
-- `yolo.onnx` — object detector;
-- `resnet_attributes.pt` — legacy nine-model ResNet checkpoint;
-- `vision_attr_transformer.pt` — trained Transformer head;
-- `minicpm-o-2_6-int4/` — local MiniCPM snapshot plus `model-manifest.json`.
+- `original_resnet_peta.pt` — девять исходных ResNet50;
+- `original_transformer_peta.pt` — исходный VisionAttrTransformer;
+- `original-minicpm-visual/` — VPM, Resampler и процессор MiniCPM-o 2.6 INT4.
 
-Validated Transformer artifact:
+Обе модели определяют девять атрибутов, всего 53 выхода. Выход MiniCPM
+имеет размерность 64 × 3584. Слои классификаторов сохранены из исходного проекта.
+Команды обучения, загрузки через DVC, экспорта и предсказания приведены в README.
+Результаты экспериментов — в `docs/original-results.md` и `plots/original-*/`.
 
-- size: `585660899` bytes;
-- SHA256: `099510a29497162f9afbab9cad1b5092fe246d70869bb90bd7b6e2ed2b6affe2`;
-- MiniCPM embedding dimension / `input_proj.in_features`: `3584`.
+`original_resnet_init.pt` и `original_transformer_init.pt` содержат прежние веса
+без состояния оптимизатора. Они использованы для начальной инициализации.
+Совпадающие классы переносятся по названиям, новые выходы инициализируются случайно.
 
-Validated detector and ResNet artifacts:
+## Исходные файлы
 
-- `yolov8s_576x1024_v2.onnx`: `44805580` bytes, SHA256
-  `c0d4889317191548e8c18a31b4b91f8d2b28842102eebe4523f9f1593a9ea933`;
-- `resnet_ens_11.19_e60_s0.782.pt`: `943757326` bytes, SHA256
-  `0c0ae02e9a5990c6adbd1ac1d2ca0e6a88c21091b87ee7de621115b328447a91`.
+Старые файлы в `C:/Human_Attributes_Detector/models` не изменялись:
 
-The complete model provenance and expected remote-code hashes live in
-`reproducibility/windows-cuda-baseline.json`. Run `scripts/prepare_minicpm_snapshot.ps1` before
-enabling the MiniCPM backend; do not hand-write `model-manifest.json`.
+| Файл                             | Размер, байт | SHA256                                                             |
+| -------------------------------- | -----------: | ------------------------------------------------------------------ |
+| `resnet_ens_11.19_e60_s0.782.pt` |    943757326 | `0c0ae02e9a5990c6adbd1ac1d2ca0e6a88c21091b87ee7de621115b328447a91` |
+| `MiniCPM-o 2.6int4 weights.pt`   |    585660899 | `099510a29497162f9afbab9cad1b5092fe246d70869bb90bd7b6e2ed2b6affe2` |
+| `yolov8s_576x1024_v2.onnx`       |     44805580 | `c0d4889317191548e8c18a31b4b91f8d2b28842102eebe4523f9f1593a9ea933` |
 
-Validation scripts compare these identities automatically. Do not commit data or weights unless
-their license and the consent basis for images of people are documented.
+Полная MiniCPM для прежнего backend описана в
+`reproducibility/windows-cuda-baseline.json`. Для нового обучения используются
+те же визуальные компоненты без загрузки языковой и аудиочастей.
+
+Компактные модели `peta_attributes.pt` и `peta_minicpm_transformer.pt` относятся
+к предыдущему эксперименту; основной путь использует исходные архитектуры выше.

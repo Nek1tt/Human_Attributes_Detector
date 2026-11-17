@@ -1,0 +1,5 @@
+outs:
+- md5: bcab31c9b057ca466425748e92a7f2ea
+  size: 943728917
+  hash: md5
+  path: original_resnet_init.pt

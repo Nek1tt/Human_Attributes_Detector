@@ -15,7 +15,7 @@ def run(*arguments):
 
 
 @click.command()
-@click.option("--full-training", is_flag=True, help="Train all batches for five epochs")
+@click.option("--full-training", is_flag=True, help="Train all batches with the default settings")
 def main(full_training):
     run("-m", "pre_commit", "run", "--all-files")
     run("-m", "unittest", "discover", "-s", "tests", "-v")
@@ -29,6 +29,7 @@ def main(full_training):
             "training.accelerator=cpu",
             "training.batch_size=1",
             "training.num_workers=0",
+            "training.precision=32-true",
             "training.output=models/smoke_attributes.pt",
             "logging.plots_dir=var/smoke-plots",
             "logging.run_name=smoke",

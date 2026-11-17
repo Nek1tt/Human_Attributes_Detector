@@ -155,7 +155,9 @@ uv run --no-sync mlflow models serve -m var/serving-model --env-manager local --
 uv run --no-sync python scripts/request_prediction.py person.jpg
 ```
 
-Для повторной упаковки задайте новую папку через `production.mlflow_model`.
+По умолчанию сервер использует CPU. Для CUDA перед запуском сервера задайте
+`HAD_DEVICE=cuda`. Для повторной упаковки укажите новую папку
+через `production.mlflow_model`.
 Дополнительные команды `had tensorrt` и `had triton` требуют установленного NVIDIA ПО.
 
 ## Infer

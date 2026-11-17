@@ -1,4 +1,4 @@
-"""Export and package the trained Market-1501 model."""
+"""Export and package the trained attribute classifiers."""
 
 import importlib.metadata
 import shutil

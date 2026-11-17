@@ -15,8 +15,8 @@ from torch.nn import functional
 from torch.utils.data import DataLoader
 
 from silhouette_detector.commands import load_config
-from silhouette_detector.market_data import MarketDataset
 from silhouette_detector.market_model import build_model
+from silhouette_detector.original_features import OriginalEmbeddingDataset, OriginalImageDataset
 
 
 def batch_loss(model, images, targets):
@@ -32,7 +32,7 @@ def batch_loss(model, images, targets):
                 )
             )
         offset += dimension
-    return torch.stack(losses).mean()
+    return torch.stack(losses).sum()
 
 
 def measure(model, loader, optimizer, mixed, steps):
@@ -71,6 +71,7 @@ def main(steps, epochs, output):
     os.environ.setdefault("CUBLAS_WORKSPACE_CONFIG", ":4096:8")
     torch.set_num_threads(4)
     torch.hub.set_dir(str(Path(".cache/torch/hub").resolve()))
+    torch.use_deterministic_algorithms(True)
     report = {
         "gpu": torch.cuda.get_device_name(),
         "free_disk_bytes": shutil.disk_usage(".").free,
@@ -78,20 +79,20 @@ def main(steps, epochs, output):
         "measured_batches": steps,
         "stages": {},
     }
-    for name, overrides, batch_size, mixed in [
-        ("resnet18", [], 64, False),
-        ("minicpm_head", ["model=minicpm_vision", "preprocess=vision"], 32, True),
-        (
-            "minicpm_finetuned",
-            ["model=minicpm_vision", "preprocess=vision", "model.unfreeze_layers=2"],
-            32,
-            True,
-        ),
+    for name, architecture, batch_size in [
+        ("nine_resnet50", "original_resnet50", 8),
+        ("original_transformer", "original_transformer", 32),
     ]:
-        config = load_config(["data=peta", *overrides])
-        model = build_model(config.model).cuda()
-        train_set = MarketDataset(config.data.root, "train", config.preprocess)
-        validation_set = MarketDataset(config.data.root, "validation", config.preprocess)
+        config = load_config(["data=peta", f"model={architecture}", "preprocess=original_resnet"])
+        model = build_model(config.model, pretrained=False).cuda()
+        if architecture == "original_transformer":
+            if not Path(config.embeddings.root, "metadata.json").exists():
+                raise RuntimeError("Run had original-extract before benchmarking the classifier")
+            train_set = OriginalEmbeddingDataset(config.embeddings.root, "train")
+            validation_set = OriginalEmbeddingDataset(config.embeddings.root, "validation")
+        else:
+            train_set = OriginalImageDataset(config.data.root, "train", config.preprocess)
+            validation_set = OriginalImageDataset(config.data.root, "validation", config.preprocess)
         options = {
             "batch_size": batch_size,
             "num_workers": 2,
@@ -104,8 +105,8 @@ def main(steps, epochs, output):
             [parameter for parameter in model.parameters() if parameter.requires_grad], lr=0.0001
         )
         torch.cuda.reset_peak_memory_stats()
-        training = measure(model, train_loader, optimizer, mixed, steps)
-        validation = measure(model, validation_loader, None, mixed, steps)
+        training = measure(model, train_loader, optimizer, True, steps)
+        validation = measure(model, validation_loader, None, True, steps)
         seconds_per_epoch = (
             math.ceil(len(train_set) / batch_size) * training["mean_seconds"]
             + math.ceil(len(validation_set) / batch_size) * validation["mean_seconds"]
@@ -128,12 +129,17 @@ def main(steps, epochs, output):
         del model, optimizer, train_loader, validation_loader
         gc.collect()
         torch.cuda.empty_cache()
-    report["estimated_training_seconds"] = sum(
+    report["estimated_training_seconds"] = 2 * sum(
         stage["estimated_stage_seconds"] for stage in report["stages"].values()
     )
-    weights = report["stages"]["minicpm_head"]["weights_bytes"]
-    baseline = report["stages"]["resnet18"]["weights_bytes"]
-    report["additional_disk_peak_bytes"] = 7 * weights + 3 * baseline + 100 * 1024**2
+    resnet_bytes = report["stages"]["nine_resnet50"]["weights_bytes"]
+    transformer_bytes = report["stages"]["original_transformer"]["weights_bytes"]
+    report["additional_disk_peak_bytes"] = max(
+        7 * resnet_bytes, 3 * resnet_bytes + 7 * transformer_bytes
+    )
+    report["note"] = (
+        "Two experiments per architecture; embeddings and visual weights are prepared separately"
+    )
     output.parent.mkdir(parents=True, exist_ok=True)
     output.write_text(json.dumps(report, indent=2), encoding="utf-8")
     print(output, flush=True)

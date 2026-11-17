@@ -1,0 +1,6 @@
+outs:
+- md5: f45a921d45df2f55116447fe9abe283f.dir
+  size: 8500108357
+  nfiles: 3
+  hash: md5
+  path: peta_embeddings
