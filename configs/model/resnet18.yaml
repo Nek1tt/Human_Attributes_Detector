@@ -1,3 +1,4 @@
 label_schema: ${data.schema}
+output: models/${data.schema}_attributes.pt
 pretrained: true
 freeze_backbone: true

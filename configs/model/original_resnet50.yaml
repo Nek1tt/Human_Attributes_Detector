@@ -1,0 +1,5 @@
+architecture: original_resnet50
+output: models/original_resnet_peta.pt
+label_schema: peta_original
+pretrained: true
+initial_weights: null

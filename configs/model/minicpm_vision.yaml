@@ -1,4 +1,5 @@
 architecture: minicpm_vision
+output: models/${data.schema}_vision_head.pt
 label_schema: ${data.schema}
 directory: models/minicpm-vision
 hidden_dim: 256

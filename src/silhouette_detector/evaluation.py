@@ -16,7 +16,19 @@ def evaluate(config):
     model, preprocess = load_model(
         ensure_checkpoint(config.inference.checkpoint), config.inference.device
     )
-    dataset = MarketDataset(root, config.inference.split, preprocess, config.inference.limit)
+    if getattr(model, "architecture", None) == "original_transformer":
+        from .original_features import OriginalEmbeddingDataset, ensure_embeddings
+
+        dataset = OriginalEmbeddingDataset(
+            ensure_embeddings(config), config.inference.split, config.inference.limit
+        )
+    else:
+        dataset_class = MarketDataset
+        if getattr(model, "architecture", None) == "original_resnet50":
+            from .original_features import OriginalImageDataset
+
+            dataset_class = OriginalImageDataset
+        dataset = dataset_class(root, config.inference.split, preprocess, config.inference.limit)
     loader = DataLoader(dataset, batch_size=config.inference.batch_size)
     matrices = {
         name: torch.zeros(len(labels), len(labels), dtype=torch.int64)
@@ -58,7 +70,7 @@ def evaluate(config):
         f1 = 2 * precision * recall / (precision + recall).clamp_min(1e-12)
         report["attributes"][name] = {
             "accuracy": float(true_positive.sum() / support.sum().clamp_min(1)),
-            "macro_f1": float(f1.mean()),
+            "macro_f1": float(f1[(matrix.sum(dim=0) + matrix.sum(dim=1)) > 0].mean()),
             "classes": [
                 {
                     "label": label,

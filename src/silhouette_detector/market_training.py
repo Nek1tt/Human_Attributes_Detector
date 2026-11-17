@@ -9,7 +9,7 @@ from pathlib import Path
 
 import lightning as lightning
 import torch
-from lightning.pytorch.callbacks import Callback, ModelCheckpoint
+from lightning.pytorch.callbacks import Callback, EarlyStopping, ModelCheckpoint
 from lightning.pytorch.loggers import CSVLogger, MLFlowLogger
 from lightning.pytorch.plugins.io import CheckpointIO
 from omegaconf import OmegaConf
@@ -19,7 +19,7 @@ from torch.utils.data import DataLoader
 from torchmetrics.classification import MulticlassF1Score
 
 from .market_data import MarketDataset, dvc_command, ensure_data
-from .market_model import build_model
+from .market_model import LABELS, build_model
 
 
 class LocalCheckpointIO(CheckpointIO):
@@ -47,14 +47,14 @@ class EpochSummary(Callback):
 
 
 class AttributeTraining(lightning.LightningModule):
-    def __init__(self, config):
+    def __init__(self, config, class_weights=None):
         super().__init__()
         self.save_hyperparameters(OmegaConf.to_container(config, resolve=True))
         self.network = build_model(config.model)
         self.labels = self.network.labels
         if config.training.get("initial_checkpoint"):
             payload = torch.load(
-                config.training.initial_checkpoint, map_location="cpu", weights_only=True
+                config.training.initial_checkpoint, map_location="cpu", weights_only=True, mmap=True
             )
             self.network.load_state_dict(payload["model_state_dict"], strict=True)
         self.learning_rate = config.training.learning_rate
@@ -62,6 +62,11 @@ class AttributeTraining(lightning.LightningModule):
             "backbone_learning_rate", self.learning_rate
         )
         self.weight_decay = config.training.weight_decay
+        self.loss_reduction = config.training.get("loss_reduction", "mean")
+        self.weighted_loss = class_weights is not None
+        if class_weights is not None:
+            for index, weights in enumerate(class_weights):
+                self.register_buffer(f"loss_weights_{index}", weights)
         self.f1_scores = nn.ModuleDict(
             {
                 name: MulticlassF1Score(num_classes=len(labels), average="macro", ignore_index=-100)
@@ -81,13 +86,20 @@ class AttributeTraining(lightning.LightningModule):
             target = targets[:, index]
             valid = target != -100
             if valid.any():
-                losses.append(functional.cross_entropy(output, target, ignore_index=-100))
+                weights = getattr(self, f"loss_weights_{index}") if self.weighted_loss else None
+                losses.append(
+                    functional.cross_entropy(output, target, weight=weights, ignore_index=-100)
+                )
             correct += ((output.argmax(dim=1) == target) & valid).sum()
             count += valid.sum()
             if stage == "validation":
                 self.f1_scores[name].update(output, target)
             offset += len(labels)
-        loss = torch.stack(losses).mean()
+        loss = (
+            torch.stack(losses).sum()
+            if self.loss_reduction == "sum"
+            else torch.stack(losses).mean()
+        )
         self.log(f"{stage}_loss", loss, on_step=False, on_epoch=True, batch_size=len(images))
         self.log(
             f"{stage}_accuracy",
@@ -113,6 +125,11 @@ class AttributeTraining(lightning.LightningModule):
             metric.reset()
 
     def configure_optimizers(self):
+        if hasattr(self.network, "parameter_groups"):
+            return torch.optim.AdamW(
+                self.network.parameter_groups(self.learning_rate, self.backbone_learning_rate),
+                weight_decay=self.weight_decay,
+            )
         backbone = [
             parameter for parameter in self.network.backbone.parameters() if parameter.requires_grad
         ]
@@ -170,8 +187,20 @@ def train(config):
     torch.hub.set_dir(str(Path(".cache/torch/hub").resolve()))
     lightning.seed_everything(config.training.seed, workers=True)
     root = ensure_data(config.data)
-    train_set = MarketDataset(root, "train", config.preprocess)
-    validation_set = MarketDataset(root, "validation", config.preprocess)
+    if config.model.get("architecture") == "original_transformer":
+        from .original_features import OriginalEmbeddingDataset, ensure_embeddings
+
+        embedding_root = ensure_embeddings(config)
+        train_set = OriginalEmbeddingDataset(embedding_root, "train")
+        validation_set = OriginalEmbeddingDataset(embedding_root, "validation")
+    else:
+        dataset_class = MarketDataset
+        if config.model.get("architecture") == "original_resnet50":
+            from .original_features import OriginalImageDataset
+
+            dataset_class = OriginalImageDataset
+        train_set = dataset_class(root, "train", config.preprocess)
+        validation_set = dataset_class(root, "validation", config.preprocess)
     loader_options = {
         "batch_size": config.training.batch_size,
         "num_workers": config.training.num_workers,
@@ -193,12 +222,27 @@ def train(config):
     checkpoint = ModelCheckpoint(
         dirpath=Path("var/checkpoints") / config.logging.run_name,
         filename="best",
-        monitor="validation_macro_f1",
+        monitor=config.training.get("monitor", "validation_macro_f1"),
         mode="max",
         save_top_k=1,
         save_weights_only=True,
     )
-    module = AttributeTraining(config)
+    class_weights = None
+    if config.training.get("balanced_loss", False):
+        from .peta_data import ORIGINAL_PETA_LABELS, PETA_LABELS
+
+        labels = {"peta_original": ORIGINAL_PETA_LABELS, "peta": PETA_LABELS, "market": LABELS}[
+            config.model.get("label_schema", "market")
+        ]
+        class_weights = []
+        for index, choices in enumerate(labels.values()):
+            targets = torch.tensor([record["labels"][index] for record in train_set.records])
+            counts = torch.bincount(targets[targets >= 0], minlength=len(choices)).float()
+            weights = (counts.sum() / (len(choices) * counts.clamp_min(1))).sqrt()
+            class_weights.append(weights / weights.mean())
+    module = AttributeTraining(config, class_weights)
+    if len(train_set.records[0]["labels"]) != len(module.labels):
+        raise ValueError("Training data and model have different attribute schemas")
     weights_bytes = sum(
         value.numel() * value.element_size() for value in module.network.state_dict().values()
     )
@@ -215,11 +259,26 @@ def train(config):
         limit_train_batches=config.training.limit_train_batches,
         limit_val_batches=config.training.limit_val_batches,
         logger=[mlflow_logger, csv_logger],
-        callbacks=[checkpoint, EpochSummary()],
+        callbacks=[
+            checkpoint,
+            EpochSummary(),
+            *(
+                [
+                    EarlyStopping(
+                        monitor=config.training.monitor,
+                        mode="max",
+                        patience=config.training.patience,
+                    )
+                ]
+                if config.training.get("patience") is not None
+                else []
+            ),
+        ],
         plugins=[LocalCheckpointIO()],
         num_sanity_val_steps=0,
         enable_progress_bar=False,
         log_every_n_steps=1,
+        accumulate_grad_batches=config.training.get("accumulate_grad_batches", 1),
     )
     trainer.fit(module, train_loader, validation_loader)
     best = torch.load(checkpoint.best_model_path, map_location="cpu", weights_only=True, mmap=True)
@@ -227,6 +286,7 @@ def train(config):
     del best
     output = Path(config.training.output)
     output.parent.mkdir(parents=True, exist_ok=True)
+    module.zero_grad(set_to_none=True)
     torch.save(
         {
             "model_state_dict": module.network.cpu().state_dict(),

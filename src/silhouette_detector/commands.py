@@ -20,6 +20,8 @@ def load_config(overrides):
         [
             "download",
             "vision-download",
+            "original-download",
+            "original-extract",
             "train",
             "infer",
             "evaluate",
@@ -36,7 +38,18 @@ def main(operation, overrides):
         if hasattr(stream, "reconfigure"):
             stream.reconfigure(encoding="utf-8")
     config = load_config(overrides)
-    if operation == "vision-download":
+    if operation == "original-download":
+        from .market_data import dvc_command
+        from .original_visual import download_original_visual
+
+        directory = download_original_visual(config.embeddings.visual_directory)
+        dvc_command("add", directory)
+        dvc_command("push", str(directory) + ".dvc")
+    elif operation == "original-extract":
+        from .original_features import extract_original_features
+
+        extract_original_features(config)
+    elif operation == "vision-download":
         from .market_data import dvc_command
         from .vision_store import download_vision
 

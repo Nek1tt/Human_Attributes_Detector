@@ -1,0 +1,6 @@
+architecture: original_transformer
+output: models/original_transformer_peta.pt
+label_schema: peta_original
+pretrained: true
+initial_weights: null
+visual_directory: ${embeddings.visual_directory}

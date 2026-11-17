@@ -26,13 +26,16 @@ def main(full_training):
             "training.epochs=2",
             "training.limit_train_batches=2",
             "training.limit_val_batches=2",
+            "training.accelerator=cpu",
+            "training.batch_size=1",
+            "training.num_workers=0",
             "training.output=models/smoke_attributes.pt",
             "logging.plots_dir=var/smoke-plots",
             "logging.run_name=smoke",
         ]
     )
     run("-m", "silhouette_detector.commands", "train", *overrides)
-    checkpoint = "models/peta_attributes.pt" if full_training else "models/smoke_attributes.pt"
+    checkpoint = "models/original_resnet_peta.pt" if full_training else "models/smoke_attributes.pt"
     serving_path = "var/check-serving-" + datetime.now().strftime("%Y%m%d-%H%M%S")
     run(
         "-m",

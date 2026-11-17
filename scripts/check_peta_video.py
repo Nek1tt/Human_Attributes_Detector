@@ -19,7 +19,7 @@ from silhouette_detector.settings import Settings
 @click.option("--yolo", required=True, type=click.Path(exists=True, path_type=Path))
 @click.option(
     "--checkpoint",
-    default="models/peta_attributes.pt",
+    default="models/original_resnet_peta.pt",
     type=click.Path(exists=True, path_type=Path),
 )
 @click.option("--device", default="cpu")
@@ -54,10 +54,12 @@ def main(video, yolo, checkpoint, device, output):
         raise ValueError("No people detected; choose a video with visible full-body people")
     for person in people:
         attributes = person["attributes"]
-        if set(attributes) != set(PETA_LABELS) or any(
-            value == "не определен" for value in attributes.values()
-        ):
-            raise ValueError("The video pipeline did not return all nine trained attributes")
+        if set(attributes) != set(PETA_LABELS):
+            raise ValueError("The video pipeline did not return all nine attributes")
+    if not any(
+        any(value != "не определен" for value in person["attributes"].values()) for person in people
+    ):
+        raise ValueError("No attribute prediction completed")
     capture = cv2.VideoCapture(str(video_output))
     readable, _ = capture.read()
     capture.release()

@@ -1,7 +1,7 @@
-onnx: models/${data.schema}_attributes.onnx
+onnx: ${model.output}.onnx
 opset: 17
 mlflow_model: var/serving-model
 triton_repository: var/triton-models
-trt_engine: models/${data.schema}_attributes.engine
+trt_engine: ${model.output}.engine
 trtexec: trtexec
 max_batch_size: 64

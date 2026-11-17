@@ -30,6 +30,8 @@ PETA_LABELS = {
     "handbag": ["no", "yes"],
 }
 
+ORIGINAL_PETA_LABELS = {name: [*choices, "unknown"] for name, choices in PETA_LABELS.items()}
+
 
 def one_class(tags, groups):
     matches = [index for index, names in enumerate(groups) if tags.intersection(names)]

@@ -22,7 +22,7 @@ var/
 /finalize_detector_remaster_commit.ps1
 uploaded_videos/
 videos/
-embeddings/
+/embeddings/
 *.onnx
 *.pt
 *.pth
@@ -37,6 +37,7 @@ models/*
 !models/README.md
 !models/*.dvc
 /data/market/
+/data/peta_embeddings/
 /.dvc/cache/
 /.dvc/tmp/
 /.dvc/config.local

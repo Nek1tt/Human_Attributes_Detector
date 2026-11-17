@@ -1,0 +1,5 @@
+root: data/peta_embeddings
+visual_directory: models/original-minicpm-visual
+batch_size: 8
+device: cuda
+reserve_gib: 8

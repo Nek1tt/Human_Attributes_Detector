@@ -1,8 +1,9 @@
 defaults:
+  - embeddings: original
   - data: peta
-  - preprocess: image
-  - model: resnet18
-  - training: default
+  - preprocess: original_resnet
+  - model: original_resnet50
+  - training: original
   - logging: mlflow
   - inference: default
   - production: default

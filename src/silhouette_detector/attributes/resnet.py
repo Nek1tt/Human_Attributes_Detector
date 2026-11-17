@@ -21,9 +21,10 @@ from .labels import ATTRIBUTE_LABELS_RU, RU_TO_API
 class ResNetEnsemble(nn.Module):
     """Checkpoint-compatible form of the original nine independent ResNet50 models."""
 
-    def __init__(self) -> None:
+    def __init__(self, attr_sizes: Mapping[str, int] | None = None) -> None:
         super().__init__()
-        for index, labels in enumerate(ATTRIBUTE_LABELS_RU.values()):
+        sizes = attr_sizes or {name: len(labels) for name, labels in ATTRIBUTE_LABELS_RU.items()}
+        for index, size in enumerate(sizes.values()):
             backbone = models.resnet50(weights=None)
             setattr(self, f"resnet_{index}", nn.Sequential(*list(backbone.children())[:-1]))
             setattr(
@@ -36,7 +37,7 @@ class ResNetEnsemble(nn.Module):
                     nn.Linear(1024, 512),
                     nn.ReLU(),
                     nn.Dropout(1 / 3),
-                    nn.Linear(512, len(labels)),
+                    nn.Linear(512, size),
                 ),
             )
 

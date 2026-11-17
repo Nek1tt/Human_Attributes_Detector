@@ -66,16 +66,21 @@ class MarketModel(nn.Module):
 
 def build_model(config, pretrained=None):
     options = dict(config)
+    options.pop("output", None)
     schema = options.pop("label_schema", "market")
-    if schema == "peta":
-        from .peta_data import PETA_LABELS
+    if schema in {"peta", "peta_original"}:
+        from .peta_data import ORIGINAL_PETA_LABELS, PETA_LABELS
 
-        options["labels"] = PETA_LABELS
+        options["labels"] = ORIGINAL_PETA_LABELS if schema == "peta_original" else PETA_LABELS
     elif schema != "market":
         raise ValueError(f"Unknown label schema: {schema}")
     architecture = options.pop("architecture", "resnet18")
     if pretrained is not None:
         options["pretrained"] = pretrained
+    if architecture in {"original_resnet50", "original_transformer"}:
+        from .original_models import OriginalClassifier
+
+        return OriginalClassifier(architecture=architecture, **options)
     if architecture == "minicpm_vision":
         from .vision_model import VisionAttributeTransformer
 
@@ -87,7 +92,13 @@ def load_model(checkpoint: Path, device="cpu", vision_directory=None):
     payload = torch.load(checkpoint, map_location="cpu", weights_only=True, mmap=True)
     config = dict(payload.get("model_config", {}))
     if vision_directory is not None:
-        config["directory"] = str(vision_directory)
+        config[
+            (
+                "visual_directory"
+                if config.get("architecture") == "original_transformer"
+                else "directory"
+            )
+        ] = str(vision_directory)
     model = build_model(config, pretrained=False)
     if payload.get("labels", model.labels) != model.labels:
         raise ValueError("Checkpoint labels do not match the model configuration")
@@ -115,7 +126,13 @@ def decode(logits, threshold=0.0, labels=None):
 def predict_image(checkpoint, image, device="cpu", threshold=0.0):
     model, preprocess = load_model(Path(checkpoint), device)
     with Image.open(image) as source:
-        tensor = image_transform(preprocess)(source.convert("RGB")).unsqueeze(0)
+        if getattr(model, "architecture", None) == "original_transformer":
+            from .original_visual import OriginalVisualEncoder
+
+            encoder = OriginalVisualEncoder(model.visual_directory, device)
+            tensor = encoder.extract([source.convert("RGB")])[0].unsqueeze(0)
+        else:
+            tensor = image_transform(preprocess)(source.convert("RGB")).unsqueeze(0)
     with (
         torch.inference_mode(),
         torch.autocast(

@@ -29,6 +29,11 @@ class MarketBackend(AttributeBackend):
         self.device = resolve_torch_device(device)
         self.model, preprocess = load_model(checkpoint, self.device)
         self.transform = image_transform(preprocess)
+        self.original_encoder = None
+        if getattr(self.model, "architecture", None) == "original_transformer":
+            from ..original_visual import OriginalVisualEncoder
+
+            self.original_encoder = OriginalVisualEncoder(self.model.visual_directory, self.device)
         self.lock = Lock()
 
     @property
@@ -36,7 +41,6 @@ class MarketBackend(AttributeBackend):
         return "peta" if "top_type" in self.model.labels else "market"
 
     def predict(self, image):
-        tensor = self.transform(image.convert("RGB")).unsqueeze(0).to(self.device)
         with (
             self.lock,
             torch.inference_mode(),
@@ -46,6 +50,11 @@ class MarketBackend(AttributeBackend):
                 enabled=self.device.startswith("cuda"),
             ),
         ):
+            tensor = (
+                self.original_encoder.extract([image])[0].unsqueeze(0)
+                if self.original_encoder is not None
+                else self.transform(image.convert("RGB")).unsqueeze(0).to(self.device)
+            )
             attributes = decode(self.model(tensor).cpu(), labels=self.model.labels)[0]
         if "top_type" in attributes:
             translations = {
