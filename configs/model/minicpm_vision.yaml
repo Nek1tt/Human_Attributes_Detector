@@ -6,3 +6,5 @@ heads: 4
 dropout: 0.1
 unfreeze_layers: 0
 pretrained: true
+height: ${preprocess.height}
+width: ${preprocess.width}

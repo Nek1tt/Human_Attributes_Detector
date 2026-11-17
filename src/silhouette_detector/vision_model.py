@@ -5,11 +5,38 @@ import json
 import sys
 from pathlib import Path
 
+import torch
 from torch import nn
 from torch.nn import functional
 
 from .market_model import LABELS
 from .vision_store import verify_source
+
+
+class FixedGridEmbeddings(nn.Module):
+    """Precompute MiniCPM position indices for the configured crop size."""
+
+    def __init__(self, original, height, width):
+        super().__init__()
+        self.patch_embedding = original.patch_embedding
+        self.position_embedding = original.position_embedding
+        self.patch_size = original.patch_size
+        if height % self.patch_size or width % self.patch_size:
+            raise ValueError("MiniCPM image dimensions must be multiples of its patch size")
+        grid = original.num_patches_per_side
+        boundaries = torch.arange(1 / grid, 1.0, 1 / grid)
+        rows = torch.bucketize(
+            torch.arange(0, 1 - 1e-6, self.patch_size / height), boundaries, right=True
+        )
+        columns = torch.bucketize(
+            torch.arange(0, 1 - 1e-6, self.patch_size / width), boundaries, right=True
+        )
+        positions = (rows[:, None] * grid + columns).flatten().unsqueeze(0)
+        self.register_buffer("positions", positions, persistent=False)
+
+    def forward(self, pixel_values, patch_attention_mask=None, tgt_sizes=None):
+        patches = self.patch_embedding(pixel_values).flatten(2).transpose(1, 2)
+        return patches + self.position_embedding(self.positions)
 
 
 class EfficientAttention(nn.Module):
@@ -68,9 +95,12 @@ class VisionAttributeTransformer(nn.Module):
         dropout=0.1,
         unfreeze_layers=0,
         pretrained=True,
+        height=224,
+        width=112,
     ):
         super().__init__()
         self.backbone = load_vision(directory, pretrained)
+        self.backbone.embeddings = FixedGridEmbeddings(self.backbone.embeddings, height, width)
         self.unfreeze_layers = unfreeze_layers
         self.backbone.requires_grad_(False)
         if unfreeze_layers:

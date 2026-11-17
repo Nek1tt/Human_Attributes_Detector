@@ -6,10 +6,23 @@ from types import SimpleNamespace
 import torch
 from torch import nn
 
-from silhouette_detector.vision_model import EfficientAttention
+from silhouette_detector.vision_model import EfficientAttention, FixedGridEmbeddings
 
 
 class VisionTests(unittest.TestCase):
+    def test_fixed_positions_broadcast_across_images(self):
+        original = SimpleNamespace(
+            patch_embedding=nn.Conv2d(3, 8, 14, stride=14),
+            position_embedding=nn.Embedding(16, 8),
+            patch_size=14,
+            num_patches_per_side=4,
+        )
+        layer = FixedGridEmbeddings(original, 28, 14)
+        images = torch.randn(3, 3, 28, 14)
+        expected = original.patch_embedding(images).flatten(2).transpose(1, 2)
+        expected = expected + original.position_embedding(torch.tensor([[0, 8]]))
+        torch.testing.assert_close(layer(images), expected)
+
     def test_sdpa_matches_scaled_attention(self):
         torch.manual_seed(7)
         original = SimpleNamespace(

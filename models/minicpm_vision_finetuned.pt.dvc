@@ -1,0 +1,5 @@
+outs:
+- md5: fa0d15e285a9ff945b38995ba234796d
+  size: 1678891266
+  hash: md5
+  path: minicpm_vision_finetuned.pt

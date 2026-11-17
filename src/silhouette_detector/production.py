@@ -3,6 +3,7 @@
 import importlib.metadata
 import shutil
 import subprocess
+import tempfile
 from pathlib import Path
 
 import numpy as np
@@ -21,16 +22,21 @@ def export_onnx(config):
     output = Path(config.production.onnx)
     output.parent.mkdir(parents=True, exist_ok=True)
     sample = torch.zeros(1, 3, preprocess["height"], preprocess["width"])
-    torch.onnx.export(
-        model,
-        sample,
-        str(output),
-        input_names=["images"],
-        output_names=["logits"],
-        dynamic_axes={"images": {0: "batch"}, "logits": {0: "batch"}},
-        opset_version=config.production.opset,
-        dynamo=False,
-    )
+    fastpath = torch.backends.mha.get_fastpath_enabled()
+    torch.backends.mha.set_fastpath_enabled(False)
+    try:
+        torch.onnx.export(
+            model,
+            sample,
+            str(output),
+            input_names=["images"],
+            output_names=["logits"],
+            dynamic_axes={"images": {0: "batch"}, "logits": {0: "batch"}},
+            opset_version=config.production.opset,
+            dynamo=False,
+        )
+    finally:
+        torch.backends.mha.set_fastpath_enabled(fastpath)
     onnx.checker.check_model(str(output))
     session = onnxruntime.InferenceSession(str(output), providers=["CPUExecutionProvider"])
     for batch_size in [1, 2]:
@@ -48,19 +54,31 @@ def package_mlflow(config):
     from .serving import AttributeServing
 
     checkpoint = ensure_checkpoint(config.inference.checkpoint)
-    dependencies = [
-        f"{name}=={importlib.metadata.version(name)}"
-        for name in ["mlflow", "torch", "torchvision", "pillow", "numpy"]
-    ]
+    payload = torch.load(checkpoint, map_location="cpu", weights_only=True, mmap=True)
+    model_config = payload.get("model_config", {})
+    package_names = ["mlflow", "torch", "torchvision", "pillow", "numpy"]
+    if model_config.get("architecture") == "minicpm_vision":
+        package_names.extend(["transformers", "huggingface-hub", "safetensors"])
+    dependencies = [f"{name}=={importlib.metadata.version(name)}" for name in package_names]
     if importlib.metadata.version("torch").endswith("+cpu"):
         dependencies.insert(0, "--extra-index-url https://download.pytorch.org/whl/cpu")
-    mlflow.pyfunc.save_model(
-        path=config.production.mlflow_model,
-        python_model=AttributeServing(),
-        artifacts={"checkpoint": str(checkpoint.resolve())},
-        code_paths=["src/silhouette_detector"],
-        pip_requirements=dependencies,
-    )
+    if "+cu128" in importlib.metadata.version("torch"):
+        dependencies.insert(0, "--extra-index-url https://download.pytorch.org/whl/cu128")
+    with tempfile.TemporaryDirectory(dir="var") as temporary:
+        artifacts = {"checkpoint": str(checkpoint.resolve())}
+        if model_config.get("directory"):
+            source = Path(temporary) / "vision-source"
+            source.mkdir()
+            for filename in ["config.json", "modeling_navit_siglip.py"]:
+                shutil.copyfile(Path(model_config["directory"]) / filename, source / filename)
+            artifacts["vision_source"] = str(source.resolve())
+        mlflow.pyfunc.save_model(
+            path=config.production.mlflow_model,
+            python_model=AttributeServing(),
+            artifacts=artifacts,
+            code_paths=["src/silhouette_detector"],
+            pip_requirements=dependencies,
+        )
     print(f"MLflow model: {config.production.mlflow_model}")
 
 

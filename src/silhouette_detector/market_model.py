@@ -76,7 +76,7 @@ def build_model(config, pretrained=None):
 
 
 def load_model(checkpoint: Path, device="cpu", vision_directory=None):
-    payload = torch.load(checkpoint, map_location="cpu", weights_only=True)
+    payload = torch.load(checkpoint, map_location="cpu", weights_only=True, mmap=True)
     config = dict(payload.get("model_config", {}))
     if vision_directory is not None:
         config["directory"] = str(vision_directory)

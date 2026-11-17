@@ -12,7 +12,9 @@ from .market_model import decode, image_transform, load_model
 
 class AttributeServing(mlflow.pyfunc.PythonModel):
     def load_context(self, context):
-        self.model, preprocess = load_model(context.artifacts["checkpoint"])
+        self.model, preprocess = load_model(
+            context.artifacts["checkpoint"], vision_directory=context.artifacts.get("vision_source")
+        )
         self.transform = image_transform(preprocess)
 
     def predict(self, context, model_input, params=None):

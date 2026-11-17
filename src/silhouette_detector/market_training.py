@@ -10,6 +10,7 @@ import lightning as lightning
 import torch
 from lightning.pytorch.callbacks import Callback, ModelCheckpoint
 from lightning.pytorch.loggers import CSVLogger, MLFlowLogger
+from lightning.pytorch.plugins.io import CheckpointIO
 from omegaconf import OmegaConf
 from torch import nn
 from torch.nn import functional
@@ -18,6 +19,23 @@ from torchmetrics.classification import MulticlassF1Score
 
 from .market_data import MarketDataset, dvc_command, ensure_data
 from .market_model import LABELS, build_model
+
+
+class LocalCheckpointIO(CheckpointIO):
+    """Write large checkpoints to disk without an extra in-memory archive."""
+
+    def save_checkpoint(self, checkpoint, path, storage_options=None):
+        destination = Path(path)
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        temporary = destination.with_suffix(".tmp")
+        torch.save(checkpoint, temporary)
+        temporary.replace(destination)
+
+    def load_checkpoint(self, path, map_location=None):
+        return torch.load(path, map_location=map_location, weights_only=True, mmap=True)
+
+    def remove_checkpoint(self, path):
+        Path(path).unlink(missing_ok=True)
 
 
 class EpochSummary(Callback):
@@ -176,6 +194,7 @@ def train(config):
         monitor="validation_macro_f1",
         mode="max",
         save_top_k=1,
+        save_weights_only=True,
     )
     module = AttributeTraining(config)
     trainer = lightning.Trainer(
@@ -189,13 +208,15 @@ def train(config):
         limit_val_batches=config.training.limit_val_batches,
         logger=[mlflow_logger, csv_logger],
         callbacks=[checkpoint, EpochSummary()],
+        plugins=[LocalCheckpointIO()],
         num_sanity_val_steps=0,
         enable_progress_bar=False,
         log_every_n_steps=1,
     )
     trainer.fit(module, train_loader, validation_loader)
-    best = torch.load(checkpoint.best_model_path, map_location="cpu", weights_only=True)
+    best = torch.load(checkpoint.best_model_path, map_location="cpu", weights_only=True, mmap=True)
     module.load_state_dict(best["state_dict"])
+    del best
     output = Path(config.training.output)
     output.parent.mkdir(parents=True, exist_ok=True)
     torch.save(
@@ -217,4 +238,5 @@ def train(config):
     mlflow_logger.experiment.log_artifacts(mlflow_logger.run_id, str(plots))
     dvc_command("add", output)
     dvc_command("push", str(output) + ".dvc")
+    Path(checkpoint.best_model_path).unlink(missing_ok=True)
     print(f"Model: {output}; plots: {plots}; MLflow run: {mlflow_logger.run_id}")
