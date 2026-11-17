@@ -9,7 +9,7 @@ from .base import AttributeBackend, NullBackend
 def create_attribute_backend(settings: Settings) -> AttributeBackend:
     if settings.attribute_backend == "none":
         return NullBackend()
-    if settings.attribute_backend == "market":
+    if settings.attribute_backend in {"market", "peta"}:
         from .market import MarketBackend
 
         return MarketBackend(settings.market_checkpoint, settings.device)

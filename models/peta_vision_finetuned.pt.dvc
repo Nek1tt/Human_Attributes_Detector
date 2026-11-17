@@ -1,0 +1,5 @@
+outs:
+- md5: 1bd311e5df34ed576a0aca036a41fd17
+  size: 1678894967
+  hash: md5
+  path: peta_vision_finetuned.pt

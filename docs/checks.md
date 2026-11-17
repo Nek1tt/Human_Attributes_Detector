@@ -1,4 +1,6 @@
-# Результаты проверок
+# Проверки эксперимента Market-1501
+
+Проверки основного проекта на PETA находятся в [peta-results.md](peta-results.md).
 
 17 ноября 2026. Windows, Python 3.12.10, PyTorch 2.8.0, CPU.
 

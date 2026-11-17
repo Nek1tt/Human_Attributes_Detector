@@ -2,72 +2,60 @@
 
 Автор: Абрамов Никита.
 
-## Задача
+Проект принимает кроп человека и определяет девять атрибутов: пол,
+возрастную группу, головной убор, цвет и тип верхней и нижней одежды,
+наличие рюкзака и сумки. Для видео используется YOLO → SFSORT → классификатор.
+Результат — видео с подписями и JSONL с атрибутами каждого трека.
 
-Проект определяет внешние атрибуты человека: пол, возрастную группу,
-одежду и сумки. Для видео есть пайплайн: YOLO находит людей,
-SFSORT отслеживает их, классификатор обрабатывает кропы.
-Результат видео — MP4 с подписями и JSONL с предсказаниями.
+## Данные и классы
 
-## Данные
+Используется [PETA](https://mmlab.ie.cuhk.edu.hk/projects/PETA.html).
+Архив скачивается с сайта авторов, SHA256 закреплён в `configs/data/peta.yaml`.
+Часть i-LID исключена: для её использования авторы указывают отдельное разрешение.
+Остаются 18 523 изображения. Разделение по ID из исходной разметки и поддатасету:
+11 060 изображений для train, 3887 для validation и 3576 для test. Seed — 42.
+Изображения одного ID находятся только в одной части.
 
-Используется [Market-1501](https://zheng-lab-anu.github.io/Project/project_reid.html)
-с [разметкой атрибутов](https://github.com/vana77/Market-1501_Attribute).
-В датасете 32 668 изображений, 1501 человек.
-751 человек относится к обучающей части, 750 — к тестовой.
-20% обучающих людей выделяются в validation. Один человек не попадает
-в разные части. Неразмеченные фоновые ID исключаются.
+| Атрибут       | Классы                                                          |
+| ------------- | --------------------------------------------------------------- |
+| Пол           | Мужчина, женщина                                                |
+| Возраст       | Младшая группа `personalLess15`, 16–30, 31–45, 46–60, старше 60 |
+| Головной убор | Нет, есть; учитываются шляпа/шапка и платок                     |
+| Цвет верха    | 11 цветов PETA                                                  |
+| Цвет низа     | 11 цветов PETA                                                  |
+| Тип верха     | Куртка, свитер, костюм, футболка, другая одежда                 |
+| Тип низа      | Брюки, шорты, юбка, капри                                       |
+| Рюкзак        | Нет, есть                                                       |
+| Сумка         | Нет, есть; сумка через плечо, пакет, чемодан или багажная сумка |
 
-Фотографии скачиваются с открытого зеркала Hugging Face, разметка — из
-репозитория авторов. Версии и SHA256 указаны в `configs/data/market.yaml`.
-Данные хранятся через [DVC](https://dvc.org/doc), локальный remote — `.dvc-storage`.
-На новом компьютере он восстанавливается из открытых источников.
+Всего 44 выходных значения. Несколько цветов или противоречивые типы одежды
+не сводятся к случайному классу: такие метки исключаются из loss и метрик.
+Отсутствующий тип верха также исключается. Класс «другая одежда» берётся
+только из явной метки `upperBodyOther`. Объединение классов — в `peta_data.py`.
 
-## Модель
+## Модели
 
-Основной GPU-вариант — визуальный энкодер MiniCPM-o 2.6 с компактной Transformer-головой.
-Двухэтапное обучение описано в [docs/minicpm-vision.md](docs/minicpm-vision.md).
-Ниже приведён простой CPU-бейзлайн и общий порядок работы с проектом.
+Бейзлайн — один предобученный ResNet18 и линейный классификатор.
+Вход RGB 128×64, нормализация ImageNet. Обучается классификатор.
 
-[ResNet18](https://docs.pytorch.org/vision/stable/models/generated/torchvision.models.resnet18.html)
-с предобученными признаками и линейным классификатором 12 атрибутов:
-пол, возраст, длина волос, длина рукава, длина и тип нижней одежды,
-головной убор, рюкзак, сумка, дамская сумка, цвет верха и низа.
-По умолчанию обучается только классификатор.
+Основная модель — визуальный энкодер MiniCPM-o 2.6 и Transformer.
+Вход 224×112 → 128 токенов по 1152 признака → проекция в 256 →
+два Transformer-слоя с четырьмя головами внимания → усреднение → 44 логита.
+Языковая и аудиочасти MiniCPM не используются.
 
-Вход — RGB-кроп человека размером 128×64. Обработка входа сохраняется
-в checkpoint. Неуказанный цвет исключается из обучения и метрик.
-Обучение выполняет [Lightning](https://lightning.ai/docs/pytorch/stable/).
+Обе модели обучаются на одинаковом разбиении PETA и возвращают одинаковые
+девять атрибутов. Старые веса на 60 классов и эксперимент Market-1501
+на 39 классов поддерживаются отдельно.
 
-## Метрики
-
-- CrossEntropy: средняя ошибка по атрибутам.
-- Accuracy: доля верных предсказаний среди известных меток.
-- Macro F1: среднее F1 по классам каждого атрибута, затем по атрибутам.
-
-Loss и accuracy записываются для train и validation, F1 — для validation.
-Лучший checkpoint выбирается по validation macro F1.
-[MLflow](https://mlflow.org/docs/latest/) хранит метрики, параметры и Git commit.
-Три графика, CSV-логи и конфигурация сохраняются в `plots/training/version_*/`.
-
-## Этапы работы
-
-1. Скачать фотографии и разметку, сохранить их в DVC.
-2. Разделить данные по людям и подготовить изображения.
-3. Обучить классификатор и сохранить лучший checkpoint.
-4. Выполнить предсказание на новых кропах людей.
-5. Экспортировать ONNX или подготовить модель для сервера.
-
-Описание: [docs/proposal.md](docs/proposal.md).
-Разбор всех критериев: [docs/criteria.md](docs/criteria.md).
-Результаты проверок: [docs/checks.md](docs/checks.md).
-PDF описания: [docs/proposal.pdf](docs/proposal.pdf).
-Новая архитектура MiniCPM vision + Transformer: [docs/minicpm-vision.md](docs/minicpm-vision.md).
+Описание проекта: [proposal.md](docs/proposal.md), [PDF](docs/proposal.pdf).
+Все критерии: [criteria.md](docs/criteria.md).
+Обучение основной модели: [minicpm-vision.md](docs/minicpm-vision.md).
+Результаты и проверки: [peta-results.md](docs/peta-results.md).
 
 ## Setup
 
 Нужны Git, Python 3.11 или 3.12 и [uv](https://docs.astral.sh/uv/).
-Все команды выполняются из корня репозитория.
+Команды выполняются из корня репозитория.
 
 ```bash
 git clone --recurse-submodules https://github.com/Nek1tt/Human_Attributes_Detector.git
@@ -78,78 +66,72 @@ uv run --no-sync pre-commit install
 uv run --no-sync pre-commit run -a
 ```
 
-`uv sync` создаёт `.venv` и устанавливает версии из `uv.lock`.
-Для предсказания с готовым checkpoint достаточно extra `cpu`.
-Для учебных команд с DVC нужен также `train`.
-MiniCPM и Telegram-бот устанавливаются отдельно.
-
-Перед сдачей код должен находиться в `main` или `master`.
-Исходная версия была в `detector-remaster`.
+Для GPU-обучения используйте установку из `docs/minicpm-vision.md`.
+Версии зависимостей закреплены в `uv.lock`.
 
 ## Train
 
-Скачать и подготовить данные:
+Скачать и подготовить PETA:
 
 ```bash
 uv run --no-sync had download
 ```
 
-В отдельном терминале запустите MLflow:
+В отдельном терминале запустить MLflow:
 
 ```bash
 uv run --no-sync mlflow server --host 127.0.0.1 --port 8080 --workers 1 --backend-store-uri sqlite:///var/mlflow.db --default-artifact-root ./var/mlartifacts
 ```
 
-Обучение:
+Обучить бейзлайн, пять эпох:
 
 ```bash
 uv run --no-sync had train
 ```
 
-Команда вызывает DVC pull. При отсутствии local remote данные
-восстанавливаются через `download_data()`. Начальные веса ResNet18
-скачиваются в `.cache/torch`. Итог — `models/market_attributes.pt`,
-модель также сохраняется в DVC.
-
-Настройки меняются через [Hydra](https://hydra.cc/docs/intro/):
+Результат — `models/peta_attributes.pt`. По умолчанию энкодер заморожен.
+Настройки задаются через [Hydra](https://hydra.cc/docs/intro/):
 
 ```bash
-uv run --no-sync had train training.epochs=10 training.learning_rate=0.0005
-uv run --no-sync had train model.freeze_backbone=false
+uv run --no-sync had train training.epochs=10 model.freeze_backbone=false
 ```
 
-Группы конфигов в `configs/`: data, preprocess, model, training,
-logging, inference и production. Адрес MLflow — `logging.tracking_uri`.
+Обучение выполняется через Lightning, оптимизатор AdamW. Ошибка — среднее
+CrossEntropy по известным атрибутам. Лучшая модель выбирается по validation
+macro F1. MLflow сохраняет loss, accuracy, macro F1, гиперпараметры и Git commit.
+Графики, CSV и конфигурация находятся в `plots/`.
+
+Данные и веса хранятся через DVC, local remote — `.dvc-storage`.
+Train и infer вызывают DVC pull. На новом компьютере датасет восстанавливается
+из открытого архива. Веса передаются с DVC-хранилищем или получаются обучением.
 
 ## Production preparation
 
-Для предсказания нужны пакет, зависимости `cpu` и checkpoint.
-Для передачи модели скопируйте `.dvc-storage` и выполните `dvc pull`
-либо обучите модель заново. Данные и веса в Git не хранятся.
-
-ONNX-экспорт и проверка совпадения с PyTorch:
+Экспорт бейзлайна в ONNX и сравнение с PyTorch для batch 1 и 2:
 
 ```bash
 uv run --no-sync had export
 ```
 
-Файл — `models/market_attributes.onnx`. Вход `images`: нормализованный
-FP32-тензор `[batch, 3, 128, 64]`. Выход `logits`: `[batch, 39]`.
-Порядок атрибутов и классов задан в `market_model.LABELS`.
+Файл `models/peta_attributes.onnx`: вход `[batch, 3, 128, 64]`,
+выход `[batch, 44]`. Порядок атрибутов и классов хранится в checkpoint.
+Для основной модели в командах укажите
+`inference.checkpoint=models/peta_vision_finetuned.pt`.
 
-На компьютере с NVIDIA TensorRT и `trtexec` в PATH:
+Упаковка для MLflow Serving:
 
 ```bash
-uv run --no-sync had tensorrt
+uv run --no-sync had package
+uv run --no-sync mlflow models serve -m var/serving-model --env-manager local --host 127.0.0.1 --port 5001
+uv run --no-sync python scripts/request_prediction.py person.jpg --check-with models/peta_attributes.pt
 ```
 
-Результат — `models/market_attributes.engine`. Engine собирается на целевой GPU.
+Требуются пакет, checkpoint и зависимости соответствующей модели.
+`had tensorrt` вызывает установленный `trtexec`.
+`had triton` создаёт репозиторий ONNX-модели для NVIDIA Triton.
+Эти два дополнительных способа требуют отдельной установки серверов.
 
 ## Infer
-
-Вход — JPEG/PNG с одним человеком, обрезанный по его границам.
-Примеры находятся в DVC-датасете, папка
-`data/market/Market-1501-v15.09.15/bounding_box_train`.
 
 На тестовой части:
 
@@ -157,80 +139,73 @@ uv run --no-sync had tensorrt
 uv run --no-sync had infer inference.limit=10
 ```
 
-На своём изображении:
+На своём кропе человека:
 
 ```bash
 uv run --no-sync had infer inference.image=person.jpg
 ```
 
-Результат — `var/predictions.jsonl`: строка на изображение,
-поля `image` и `attributes`. Названия классов на английском.
-Возраст: `young`, `teenager`, `adult`, `old`.
-`inference.confidence_threshold` задаёт порог уверенности;
-ниже порога возвращается `unknown`.
+Результат — `var/predictions.jsonl`, девять атрибутов на английском.
+`inference.confidence_threshold` задаёт порог: ниже него возвращается `unknown`.
 
-### MLflow Serving
+Полная оценка на тесте, включая precision, recall и F1 каждого класса:
 
 ```bash
-uv run --no-sync had package
-uv run --no-sync mlflow models serve -m var/serving-model --env-manager local --host 127.0.0.1 --port 5001
-uv run --no-sync python scripts/request_prediction.py person.jpg
+uv run --no-sync had evaluate inference.output=var/peta-test.json
 ```
 
-В запросе JSON с колонкой `image`, содержащей изображение в Base64.
-Для сравнения с локальной моделью добавьте `--check-with models/market_attributes.pt`.
-При повторной упаковке укажите новую папку:
-`had package production.mlflow_model=var/serving-model-v2`.
+Для основной модели добавьте
+`inference.checkpoint=models/peta_vision_finetuned.pt inference.device=cuda`.
+Тестовая часть не используется для выбора checkpoint.
 
-### Triton
+### Видео
 
-После ONNX-экспорта:
-
-```bash
-uv run --no-sync had triton
-docker run --rm -p 8000:8000 -v "${PWD}/var/triton-models:/models" nvcr.io/nvidia/tritonserver:26.10-py3 tritonserver --model-repository=/models
-uv run --no-sync python scripts/request_triton.py person.jpg
-```
-
-Клиент нормализует изображение и переводит выходные логиты в атрибуты.
-
-### Видео и старые веса
-
-Backends `resnet` и `minicpm` сохранены.
-Установка и видеотесты — в [docs/video.md](docs/video.md).
-Новая модель подключается к тому же видеопайплайну:
+Новые модели используют общий backend `peta`:
 
 ```powershell
-$env:HAD_ATTRIBUTE_BACKEND = "market"
-$env:HAD_MARKET_CHECKPOINT = "models/market_attributes.pt"
-$env:HAD_DETECTOR_MODEL = "models/yolo.onnx"
+$env:HAD_ATTRIBUTE_BACKEND = "peta"
+$env:HAD_ATTRIBUTE_CHECKPOINT = "models/peta_attributes.pt"
+$env:HAD_DETECTOR_MODEL = "C:/Human_Attributes_Detector/models/yolov8s_576x1024_v2.onnx"
+$env:HAD_DEVICE = "cpu"
 uv run --no-sync had-api
 ```
 
-YOLO-веса нужны отдельно. Видео API сохраняет девять старых ключей.
-Возраст и тип верхней одежды возвращаются как «не определен»:
-в Market-1501 нет классов, совпадающих со старой схемой.
-Полные 12 атрибутов возвращают `had infer` и MLflow Serving.
+API возвращает те же девять атрибутов на русском. Примеры HTTP-запросов
+и старые backends — в [video.md](docs/video.md).
 
 ## Самостоятельные проверки
 
 ```bash
 uv run --no-sync pre-commit run -a
 uv run --no-sync python -m unittest discover -s tests -v
-```
-
-Все команды с коротким обучением на реальных данных
-(MLflow должен быть запущен):
-
-```bash
 uv run --no-sync python scripts/check_project.py
 ```
 
-То же с полным обучением:
+Для последней команды нужен запущенный MLflow. Она выполняет короткое обучение
+на настоящих данных, infer, ONNX-экспорт и проверку MLflow-модели.
 
-```bash
-uv run --no-sync python scripts/check_project.py --full-training
+Проверка всего видеопайплайна с обученной PETA-моделью:
+
+```powershell
+uv run --no-sync python scripts/check_peta_video.py --video person.mp4 --yolo models/yolo.onnx --checkpoint models/peta_attributes.pt
 ```
 
-Для PowerShell есть `scripts/check_project.ps1` с флагом `-FullTraining`.
-Короткая проверка использует отдельные `models/smoke_attributes.pt` и `var/smoke-plots`.
+Для основной модели добавьте `--checkpoint models/peta_vision_finetuned.pt --device cuda`.
+Скрипт проверяет читаемость выходного MP4 и наличие всех девяти атрибутов в JSONL.
+
+Замер времени и памяти до полного GPU-обучения:
+
+```bash
+uv run --no-sync python scripts/estimate_training.py
+```
+
+Результат — `var/training-estimate.json`. Скрипт не сохраняет обученные модели.
+Перед каждой тренировкой проверяется свободное место. Сохраняется один лучший
+временный checkpoint; после записи итоговых весов в DVC он удаляется.
+
+## Старые результаты
+
+Старый датасет утерян. Его веса остаются совместимы с прежними backends,
+но метрики на старых и новых данных не сравниваются напрямую.
+Эксперимент Market-1501 описан отдельно в [minicpm-results.md](docs/minicpm-results.md).
+Для его воспроизведения используется `data=market`.

@@ -1,0 +1,5 @@
+outs:
+- md5: f154b49082eea685eefa82871bbbd813
+  size: 44877707
+  hash: md5
+  path: peta_attributes.pt

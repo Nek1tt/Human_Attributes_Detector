@@ -77,6 +77,7 @@ class Settings:
     @classmethod
     def from_env(cls) -> Settings:
         root = Path(os.getenv("HAD_ROOT", str(_project_root()))).expanduser().resolve()
+        backend = os.getenv("HAD_ATTRIBUTE_BACKEND", "resnet").strip().lower()
 
         def path_value(name: str, relative_default: str) -> Path:
             raw = os.getenv(name)
@@ -91,8 +92,19 @@ class Settings:
         settings = cls(
             root=root,
             detector_model=path_value("HAD_DETECTOR_MODEL", "models/yolo.onnx"),
-            attribute_backend=os.getenv("HAD_ATTRIBUTE_BACKEND", "resnet").strip().lower(),
-            market_checkpoint=path_value("HAD_MARKET_CHECKPOINT", "models/market_attributes.pt"),
+            attribute_backend=backend,
+            market_checkpoint=path_value(
+                (
+                    "HAD_ATTRIBUTE_CHECKPOINT"
+                    if os.getenv("HAD_ATTRIBUTE_CHECKPOINT")
+                    else "HAD_MARKET_CHECKPOINT"
+                ),
+                (
+                    "models/peta_attributes.pt"
+                    if backend == "peta"
+                    else "models/market_attributes.pt"
+                ),
+            ),
             resnet_checkpoint=path_value("HAD_RESNET_CHECKPOINT", "models/resnet_attributes.pt"),
             transformer_checkpoint=path_value(
                 "HAD_TRANSFORMER_CHECKPOINT", "models/vision_attr_transformer.pt"
@@ -116,8 +128,8 @@ class Settings:
         return settings
 
     def validate(self) -> None:
-        if self.attribute_backend not in {"resnet", "minicpm", "market", "none"}:
-            raise ValueError("HAD_ATTRIBUTE_BACKEND must be resnet, minicpm, market, or none")
+        if self.attribute_backend not in {"resnet", "minicpm", "market", "peta", "none"}:
+            raise ValueError("HAD_ATTRIBUTE_BACKEND must be resnet, minicpm, market, peta, or none")
         if self.device not in {"auto", "cpu", "cuda"} and not self.device.startswith("cuda:"):
             raise ValueError("HAD_DEVICE must be auto, cpu, cuda, or cuda:<index>")
         if self.target_fps <= 0:

@@ -33,7 +33,7 @@ class MarketBackend(AttributeBackend):
 
     @property
     def name(self):
-        return "market"
+        return "peta" if "top_type" in self.model.labels else "market"
 
     def predict(self, image):
         tensor = self.transform(image.convert("RGB")).unsqueeze(0).to(self.device)

@@ -69,4 +69,4 @@ Get-FileHash models\yolo.onnx -Algorithm SHA256
 ```
 
 Исходные CPU/CUDA lock-файлы находятся в `requirements/locks`.
-Новый учебный путь с Market-1501 использует `uv.lock` из корня проекта.
+Новый учебный путь с PETA использует `uv.lock` из корня проекта.
