@@ -44,6 +44,21 @@ def import_weights(source, destination):
     return str(destination)
 
 
+def read_result(name, family, output):
+    csv_path = sorted(Path(f"plots/{name}").glob("training/version_*/metrics.csv"))[-1]
+    with csv_path.open(encoding="utf-8") as stream:
+        rows = [row for row in csv.DictReader(stream) if row.get("validation_accuracy")]
+    best = max(rows, key=lambda row: float(row["validation_accuracy"]))
+    return {
+        "name": name,
+        "family": family,
+        "checkpoint": output,
+        "validation_accuracy": float(best["validation_accuracy"]),
+        "validation_macro_f1": float(best["validation_macro_f1"]),
+        "epoch": int(float(best["epoch"])) + 1,
+    }
+
+
 def publish_best(selected, candidates):
     """Keep one final weight file per architecture and preserve all experiment logs."""
     destination = Path(f"models/original_{selected['family']}_peta.pt")
@@ -122,7 +137,9 @@ def main(
     if only in {"all", "transformer"} and not skip_extraction:
         run("original-download")
         run("original-extract")
-    results = []
+    results_path = Path("plots/original-experiments.json")
+    previous = json.loads(results_path.read_text()) if results_path.exists() else []
+    results = [row for row in previous if only != "all" and row["family"] != only]
     for family in ["resnet", "transformer"] if only == "all" else [only]:
         batch_size = resnet_batch_size if family == "resnet" else transformer_batch_size
         architecture = "original_resnet50" if family == "resnet" else "original_transformer"
@@ -153,27 +170,42 @@ def main(
                     f"logging.run_name={name}",
                     f"logging.plots_dir={directory}",
                 )
-                csv_path = sorted(Path(directory).glob("training/version_*/metrics.csv"))[-1]
-                with csv_path.open(encoding="utf-8") as stream:
-                    rows = [row for row in csv.DictReader(stream) if row.get("validation_accuracy")]
-                best = max(rows, key=lambda row: float(row["validation_accuracy"]))
                 marker.write_text(
-                    json.dumps(
-                        {
-                            "name": name,
-                            "family": family,
-                            "checkpoint": output,
-                            "validation_accuracy": float(best["validation_accuracy"]),
-                            "validation_macro_f1": float(best["validation_macro_f1"]),
-                            "epoch": int(float(best["epoch"])) + 1,
-                        },
-                        indent=2,
-                    )
-                    + "\n",
+                    json.dumps(read_result(name, family, output), indent=2) + "\n",
                     encoding="utf-8",
                 )
             results.append(json.loads(marker.read_text()))
         candidates = [row for row in results if row["family"] == family]
+        if family == "transformer":
+            name = "original-transformer-refined"
+            output = f"models/{name}.pt"
+            marker = Path(f"plots/{name}/completed.json")
+            if not marker.exists() or restart:
+                if shutil.disk_usage(".").free < 8 * 1024**3:
+                    raise RuntimeError("Less than 8 GiB free before refinement")
+                base = max(candidates, key=lambda row: row["validation_accuracy"])
+                run(
+                    "train",
+                    "model=original_transformer",
+                    "model.pretrained=false",
+                    "model.initial_weights=null",
+                    "training=original",
+                    f"training.initial_checkpoint={base['checkpoint']}",
+                    f"training.epochs={epochs}",
+                    f"training.batch_size={batch_size}",
+                    "training.backbone_learning_rate=0.000002",
+                    "training.learning_rate=0.00005",
+                    f"training.output={output}",
+                    f"logging.run_name={name}",
+                    f"logging.plots_dir=plots/{name}",
+                )
+                marker.write_text(
+                    json.dumps(read_result(name, family, output), indent=2) + "\n",
+                    encoding="utf-8",
+                )
+            result = json.loads(marker.read_text())
+            results.append(result)
+            candidates.append(result)
         selected = max(candidates, key=lambda row: row["validation_accuracy"])
         selected["checkpoint"] = publish_best(selected, candidates)
         run(
@@ -183,9 +215,7 @@ def main(
             f"inference.output=plots/original-{family}-test.json",
             "inference.batch_size=8" if family == "resnet" else "inference.batch_size=32",
         )
-    Path("plots/original-experiments.json").write_text(
-        json.dumps(results, indent=2) + "\n", encoding="utf-8"
-    )
+    results_path.write_text(json.dumps(results, indent=2) + "\n", encoding="utf-8")
     print("Original architecture experiments completed", flush=True)
 
 

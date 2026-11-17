@@ -91,8 +91,8 @@ class AttributeTraining(lightning.LightningModule):
         images, targets = batch
         logits = self.network(images)
         losses = []
-        correct = logits.new_zeros(())
-        count = logits.new_zeros(())
+        correct = logits.new_zeros((), dtype=torch.float32)
+        count = logits.new_zeros((), dtype=torch.float32)
         offset = 0
         for index, (name, labels) in enumerate(self.labels.items()):
             output = logits[:, offset : offset + len(labels)]

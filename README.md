@@ -106,6 +106,7 @@ uv run --no-sync python scripts/train_original.py --skip-extraction --resnet-wei
 
 По умолчанию выполняется до четырёх эпох на эксперимент. Меняются learning rate
 и взвешивание ошибки. Сохраняется лучший checkpoint по validation accuracy.
+Лучший Transformer дополнительно дообучается с меньшим learning rate.
 Тестовая часть оценивается после выбора лучшего варианта каждой архитектуры.
 Журналы и три графика каждого эксперимента сохраняются в `plots/original-*/`.
 

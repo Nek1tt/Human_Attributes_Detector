@@ -63,6 +63,9 @@ uv run --no-sync python scripts/train_original.py --skip-extraction --epochs 4
 | Исходный Transformer | standard |           0.00005 |             0.0003 | Обычная CE    |
 | Исходный Transformer | balanced |           0.00001 |             0.0001 | Взвешенная CE |
 
+Затем лучший Transformer дообучается ещё до четырёх эпох: LR основных слоёв
+0.000002, LR классификаторов 0.00005, обычная CE. Этот вариант называется refined.
+
 Веса классов вычисляются только по train как обратный квадратный корень частоты.
 Все варианты используют одинаковое разбиение. Суммируются ошибки девяти атрибутов.
 AdamW, BF16, gradient clipping 1.0. Лучшая модель выбирается по validation accuracy.
