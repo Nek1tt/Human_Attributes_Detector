@@ -6,20 +6,51 @@ import torch
 from torch import nn
 from torchvision import models
 
-from .attributes.labels import RU_TO_API
+from .attributes.labels import ATTRIBUTE_LABELS_RU, RU_TO_API
+from .attributes.market import COLORS_RU
 from .attributes.resnet import ResNetEnsemble
 from .attributes.transformer import VisionAttrTransformer
 
 
-def initialize_from_old(model, checkpoint, transformer=False):
+def transfer_common_classes(model, state, labels, transformer):
+    aliases = {
+        **COLORS_RU,
+        "male": "мужчина",
+        "female": "женщина",
+        "yes": "да",
+        "no": "отсутствует",
+        "unknown": "не определен",
+        "jacket": "куртка",
+        "tshirt": "футболка",
+        "trousers": "брюки",
+        "shorts": "шорты",
+        "skirt": "юбка",
+    }
+    original_names = {api: ru for ru, api in RU_TO_API.items()}
+    with torch.no_grad():
+        for index, (attribute, choices) in enumerate(labels.items()):
+            prefix = f"heads.{attribute}.3" if transformer else f"fc_{index}.6"
+            layer = model.heads[attribute][3] if transformer else getattr(model, f"fc_{index}")[6]
+            old_choices = ATTRIBUTE_LABELS_RU[original_names[attribute]]
+            for target, choice in enumerate(choices):
+                label = aliases.get(choice)
+                if label in old_choices:
+                    source = old_choices.index(label)
+                    layer.weight[target].copy_(state[prefix + ".weight"][source])
+                    layer.bias[target].copy_(state[prefix + ".bias"][source])
+
+
+def initialize_from_old(model, checkpoint, labels, transformer=False):
     payload = torch.load(checkpoint, map_location="cpu", weights_only=True, mmap=True)
     state = payload.get("model_state_dict", payload)
     compatible = {}
+    normalized_state = {}
     for name, value in state.items():
         if transformer and name.startswith("heads."):
             parts = name.split(".")
             parts[1] = RU_TO_API.get(parts[1], parts[1])
             name = ".".join(parts)
+        normalized_state[name] = value
         final_layer = (
             name.startswith("heads.") and ".3." in name
             if transformer
@@ -39,6 +70,7 @@ def initialize_from_old(model, checkpoint, transformer=False):
     ]
     if set(result.missing_keys) != set(expected_missing) or result.unexpected_keys:
         raise ValueError("Old weights do not match the original architecture")
+    transfer_common_classes(model, normalized_state, labels, transformer)
 
 
 class OriginalClassifier(nn.Module):
@@ -65,7 +97,7 @@ class OriginalClassifier(nn.Module):
             raise ValueError(f"Unknown original architecture: {architecture}")
         if pretrained and initial_weights:
             initialize_from_old(
-                self.model, Path(initial_weights), architecture == "original_transformer"
+                self.model, Path(initial_weights), labels, architecture == "original_transformer"
             )
         elif pretrained and architecture == "original_resnet50":
             reference = models.resnet50(weights=models.ResNet50_Weights.DEFAULT)

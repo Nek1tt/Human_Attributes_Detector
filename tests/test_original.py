@@ -10,14 +10,37 @@ from types import SimpleNamespace
 import torch
 from torchmetrics.classification import MulticlassF1Score
 
+from silhouette_detector.attributes.labels import ATTRIBUTE_LABELS_RU, RU_TO_API
 from silhouette_detector.attributes.resnet import ResNetEnsemble
 from silhouette_detector.attributes.transformer import VisionAttrTransformer
 from silhouette_detector.original_features import unknown_targets
-from silhouette_detector.original_models import OriginalClassifier
+from silhouette_detector.original_models import OriginalClassifier, transfer_common_classes
 from silhouette_detector.peta_data import ORIGINAL_PETA_LABELS
 
 
 class OriginalArchitectureTests(unittest.TestCase):
+    def test_old_output_rows_follow_class_names_instead_of_class_indices(self):
+        model = torch.nn.Module()
+        model.heads = torch.nn.ModuleDict()
+        state = {}
+        names = {api: ru for ru, api in RU_TO_API.items()}
+        for attribute, choices in ORIGINAL_PETA_LABELS.items():
+            model.heads[attribute] = torch.nn.Sequential(
+                torch.nn.Identity(),
+                torch.nn.Identity(),
+                torch.nn.Identity(),
+                torch.nn.Linear(2, len(choices)),
+            )
+            count = len(ATTRIBUTE_LABELS_RU[names[attribute]])
+            state[f"heads.{attribute}.3.weight"] = (
+                torch.arange(count).float().unsqueeze(1).repeat(1, 2)
+            )
+            state[f"heads.{attribute}.3.bias"] = torch.arange(count).float()
+        transfer_common_classes(model, state, ORIGINAL_PETA_LABELS, transformer=True)
+        self.assertEqual(model.heads["backpack"][3].bias.tolist(), [1.0, 0.0, 2.0])
+        self.assertEqual(float(model.heads["top_color"][3].bias[0]), 7.0)
+        self.assertEqual(float(model.heads["age"][3].bias[-1]), 5.0)
+
     @unittest.skipUnless(
         torch.cuda.is_available()
         and Path("models/original-minicpm-visual/visual.safetensors").exists()
