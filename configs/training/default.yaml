@@ -11,4 +11,4 @@ deterministic: true
 gradient_clip_val: 1.0
 limit_train_batches: 1.0
 limit_val_batches: 1.0
-output: models/market_attributes.pt
+output: models/${data.schema}_attributes.pt

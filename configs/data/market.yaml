@@ -1,3 +1,4 @@
+schema: market
 root: data/market
 remote: .dvc-storage
 validation_fraction: 0.2

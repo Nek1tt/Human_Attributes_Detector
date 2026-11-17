@@ -1,4 +1,5 @@
 architecture: minicpm_vision
+label_schema: ${data.schema}
 directory: models/minicpm-vision
 hidden_dim: 256
 layers: 2

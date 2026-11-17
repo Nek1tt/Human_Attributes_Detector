@@ -27,25 +27,31 @@ def run(operation, *overrides):
 @click.option("--head-epochs", default=5, type=click.IntRange(min=1))
 @click.option("--finetune-epochs", default=5, type=click.IntRange(min=1))
 @click.option("--batch-size", default=32, type=click.IntRange(min=1))
-def main(head_epochs, finetune_epochs, batch_size):
+@click.option("--dataset", default="peta", type=click.Choice(["peta", "market"]))
+def main(head_epochs, finetune_epochs, batch_size, dataset):
+    head_path = f"models/{dataset}_vision_head.pt"
+    final_path = f"models/{dataset}_vision_finetuned.pt"
     run("vision-download")
     run(
         "train",
+        f"data={dataset}",
         f"training.epochs={head_epochs}",
         f"training.batch_size={batch_size}",
-        "logging.run_name=minicpm-vision-head",
-        "logging.plots_dir=plots/minicpm-head",
+        f"training.output={head_path}",
+        f"logging.run_name={dataset}-vision-head",
+        f"logging.plots_dir=plots/{dataset}-head",
     )
     run(
         "train",
+        f"data={dataset}",
         f"training.epochs={finetune_epochs}",
         f"training.batch_size={batch_size}",
         "model.unfreeze_layers=2",
         "training.learning_rate=0.0001",
-        "training.initial_checkpoint=models/minicpm_vision_head.pt",
-        "training.output=models/minicpm_vision_finetuned.pt",
-        "logging.run_name=minicpm-vision-finetuned",
-        "logging.plots_dir=plots/minicpm-finetuned",
+        f"training.initial_checkpoint={head_path}",
+        f"training.output={final_path}",
+        f"logging.run_name={dataset}-vision-finetuned",
+        f"logging.plots_dir=plots/{dataset}-finetuned",
     )
     print("MiniCPM vision and Transformer training completed", flush=True)
 

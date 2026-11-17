@@ -23,4 +23,4 @@ class AttributeServing(mlflow.pyfunc.PythonModel):
             with Image.open(io.BytesIO(base64.b64decode(encoded, validate=True))) as image:
                 images.append(self.transform(image.convert("RGB")))
         with torch.inference_mode():
-            return decode(self.model(torch.stack(images)))
+            return decode(self.model(torch.stack(images)), labels=self.model.labels)

@@ -1,2 +1,3 @@
+label_schema: ${data.schema}
 pretrained: true
 freeze_backbone: true

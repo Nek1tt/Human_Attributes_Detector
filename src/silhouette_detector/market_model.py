@@ -42,13 +42,14 @@ def image_transform(config, training=False):
 
 
 class MarketModel(nn.Module):
-    def __init__(self, pretrained=False, freeze_backbone=False):
+    def __init__(self, pretrained=False, freeze_backbone=False, labels=None):
         super().__init__()
+        self.labels = LABELS if labels is None else labels
         weights = models.ResNet18_Weights.DEFAULT if pretrained else None
         self.backbone = models.resnet18(weights=weights)
         dimension = self.backbone.fc.in_features
         self.backbone.fc = nn.Identity()
-        self.classifier = nn.Linear(dimension, sum(len(labels) for labels in LABELS.values()))
+        self.classifier = nn.Linear(dimension, sum(len(values) for values in self.labels.values()))
         self.freeze_backbone = freeze_backbone
         if freeze_backbone:
             self.backbone.requires_grad_(False)
@@ -65,6 +66,13 @@ class MarketModel(nn.Module):
 
 def build_model(config, pretrained=None):
     options = dict(config)
+    schema = options.pop("label_schema", "market")
+    if schema == "peta":
+        from .peta_data import PETA_LABELS
+
+        options["labels"] = PETA_LABELS
+    elif schema != "market":
+        raise ValueError(f"Unknown label schema: {schema}")
     architecture = options.pop("architecture", "resnet18")
     if pretrained is not None:
         options["pretrained"] = pretrained
@@ -81,21 +89,26 @@ def load_model(checkpoint: Path, device="cpu", vision_directory=None):
     if vision_directory is not None:
         config["directory"] = str(vision_directory)
     model = build_model(config, pretrained=False)
+    if payload.get("labels", model.labels) != model.labels:
+        raise ValueError("Checkpoint labels do not match the model configuration")
     model.load_state_dict(payload["model_state_dict"])
     return model.to(device).eval(), payload["preprocess"]
 
 
-def decode(logits, threshold=0.0):
+def decode(logits, threshold=0.0, labels=None):
+    schema = LABELS if labels is None else labels
+    if logits.shape[1] != sum(len(values) for values in schema.values()):
+        raise ValueError("Logit dimension does not match the attribute labels")
     predictions = [{} for _ in range(len(logits))]
     offset = 0
-    for attribute, labels in LABELS.items():
-        probabilities = logits[:, offset : offset + len(labels)].softmax(dim=1)
+    for attribute, values in schema.items():
+        probabilities = logits[:, offset : offset + len(values)].softmax(dim=1)
         confidence, indices = probabilities.max(dim=1)
         for prediction, index, score in zip(
             predictions, indices.tolist(), confidence.tolist(), strict=True
         ):
-            prediction[attribute] = labels[index] if score >= threshold else "unknown"
-        offset += len(labels)
+            prediction[attribute] = values[index] if score >= threshold else "unknown"
+        offset += len(values)
     return predictions
 
 
@@ -109,4 +122,4 @@ def predict_image(checkpoint, image, device="cpu", threshold=0.0):
             torch.device(device).type, dtype=torch.bfloat16, enabled=str(device).startswith("cuda")
         ),
     ):
-        return decode(model(tensor.to(device)).cpu(), threshold)[0]
+        return decode(model(tensor.to(device)).cpu(), threshold, model.labels)[0]

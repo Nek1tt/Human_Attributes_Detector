@@ -1,5 +1,5 @@
 defaults:
-  - data: market
+  - data: peta
   - preprocess: image
   - model: resnet18
   - training: default

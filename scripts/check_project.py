@@ -32,7 +32,7 @@ def main(full_training):
         ]
     )
     run("-m", "silhouette_detector.commands", "train", *overrides)
-    checkpoint = "models/market_attributes.pt" if full_training else "models/smoke_attributes.pt"
+    checkpoint = "models/peta_attributes.pt" if full_training else "models/smoke_attributes.pt"
     serving_path = "var/check-serving-" + datetime.now().strftime("%Y%m%d-%H%M%S")
     run(
         "-m",
@@ -59,7 +59,7 @@ def main(full_training):
 
     from silhouette_detector.market_model import predict_image
 
-    image = next(Path("data/market/Market-1501-v15.09.15/bounding_box_train").glob("*.jpg"))
+    image = next(Path("data/peta/PETA dataset").rglob("*.jpg"))
     encoded = base64.b64encode(image.read_bytes()).decode("ascii")
     packaged = mlflow.pyfunc.load_model(serving_path).predict({"image": [encoded]})
     if packaged != [predict_image(checkpoint, image)]:

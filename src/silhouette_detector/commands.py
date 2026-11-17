@@ -22,6 +22,7 @@ def load_config(overrides):
             "vision-download",
             "train",
             "infer",
+            "evaluate",
             "export",
             "package",
             "tensorrt",
@@ -54,6 +55,10 @@ def main(operation, overrides):
         from .market_inference import infer
 
         infer(config)
+    elif operation == "evaluate":
+        from .evaluation import evaluate
+
+        evaluate(config)
     else:
         from .production import export_onnx, package_mlflow, package_triton, to_tensorrt
 

@@ -1,4 +1,4 @@
-checkpoint: models/market_attributes.pt
+checkpoint: models/${data.schema}_attributes.pt
 split: test
 image: null
 output: var/predictions.jsonl

@@ -97,8 +97,10 @@ class VisionAttributeTransformer(nn.Module):
         pretrained=True,
         height=224,
         width=112,
+        labels=None,
     ):
         super().__init__()
+        self.labels = LABELS if labels is None else labels
         self.backbone = load_vision(directory, pretrained)
         self.backbone.embeddings = FixedGridEmbeddings(self.backbone.embeddings, height, width)
         self.unfreeze_layers = unfreeze_layers
@@ -119,7 +121,7 @@ class VisionAttributeTransformer(nn.Module):
         )
         self.transformer = nn.TransformerEncoder(layer, layers, enable_nested_tensor=False)
         self.norm = nn.LayerNorm(hidden_dim)
-        self.classifier = nn.Linear(hidden_dim, sum(len(labels) for labels in LABELS.values()))
+        self.classifier = nn.Linear(hidden_dim, sum(len(values) for values in self.labels.values()))
 
     def train(self, mode=True):
         super().train(mode)

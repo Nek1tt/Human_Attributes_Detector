@@ -94,6 +94,10 @@ def dvc_command(*arguments):
 
 
 def download_data(config):
+    if config.get("schema", "market") == "peta":
+        from .peta_data import download_peta
+
+        return download_peta(config)
     root = Path(config.root)
     root.mkdir(parents=True, exist_ok=True)
     archive = Path("var/downloads/market.tar.gz")

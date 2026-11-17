@@ -15,6 +15,8 @@ COLORS_RU = {
     "purple": "фиолетовый",
     "yellow": "желтый",
     "gray": "серый",
+    "grey": "серый",
+    "orange": "оранжевый",
     "blue": "синий",
     "green": "зеленый",
     "brown": "коричневый",
@@ -44,7 +46,31 @@ class MarketBackend(AttributeBackend):
                 enabled=self.device.startswith("cuda"),
             ),
         ):
-            attributes = decode(self.model(tensor).cpu())[0]
+            attributes = decode(self.model(tensor).cpu(), labels=self.model.labels)[0]
+        if "top_type" in attributes:
+            translations = {
+                **COLORS_RU,
+                "male": "мужчина",
+                "female": "женщина",
+                "less15": "младше 15 лет",
+                "16-30": "16-30 лет",
+                "31-45": "31-45 лет",
+                "46-60": "46-60 лет",
+                "over60": "старше 60 лет",
+                "jacket": "куртка",
+                "sweater": "свитер",
+                "suit": "костюм",
+                "tshirt": "футболка",
+                "other": "другая одежда",
+                "trousers": "брюки",
+                "shorts": "шорты",
+                "skirt": "юбка",
+                "capri": "капри",
+                "yes": "да",
+                "no": "отсутствует",
+                "unknown": "не определен",
+            }
+            return self.normalize({name: translations[value] for name, value in attributes.items()})
         bottom_type = (
             "юбка"
             if attributes["lower_type"] == "dress"

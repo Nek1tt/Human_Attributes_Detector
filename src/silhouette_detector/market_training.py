@@ -3,6 +3,7 @@
 import csv
 import json
 import os
+import shutil
 import subprocess
 from pathlib import Path
 
@@ -18,7 +19,7 @@ from torch.utils.data import DataLoader
 from torchmetrics.classification import MulticlassF1Score
 
 from .market_data import MarketDataset, dvc_command, ensure_data
-from .market_model import LABELS, build_model
+from .market_model import build_model
 
 
 class LocalCheckpointIO(CheckpointIO):
@@ -50,6 +51,7 @@ class AttributeTraining(lightning.LightningModule):
         super().__init__()
         self.save_hyperparameters(OmegaConf.to_container(config, resolve=True))
         self.network = build_model(config.model)
+        self.labels = self.network.labels
         if config.training.get("initial_checkpoint"):
             payload = torch.load(
                 config.training.initial_checkpoint, map_location="cpu", weights_only=True
@@ -63,7 +65,7 @@ class AttributeTraining(lightning.LightningModule):
         self.f1_scores = nn.ModuleDict(
             {
                 name: MulticlassF1Score(num_classes=len(labels), average="macro", ignore_index=-100)
-                for name, labels in LABELS.items()
+                for name, labels in self.labels.items()
             }
         )
 
@@ -74,7 +76,7 @@ class AttributeTraining(lightning.LightningModule):
         correct = logits.new_zeros(())
         count = logits.new_zeros(())
         offset = 0
-        for index, (name, labels) in enumerate(LABELS.items()):
+        for index, (name, labels) in enumerate(self.labels.items()):
             output = logits[:, offset : offset + len(labels)]
             target = targets[:, index]
             valid = target != -100
@@ -197,6 +199,12 @@ def train(config):
         save_weights_only=True,
     )
     module = AttributeTraining(config)
+    weights_bytes = sum(
+        value.numel() * value.element_size() for value in module.network.state_dict().values()
+    )
+    required_bytes = 4 * weights_bytes + 4 * 1024**3
+    if shutil.disk_usage(".").free < required_bytes:
+        raise RuntimeError(f"Training needs at least {required_bytes / 1024**3:.1f} GiB free")
     trainer = lightning.Trainer(
         max_epochs=config.training.epochs,
         accelerator=config.training.accelerator,
@@ -223,7 +231,7 @@ def train(config):
         {
             "model_state_dict": module.network.cpu().state_dict(),
             "preprocess": OmegaConf.to_container(config.preprocess, resolve=True),
-            "labels": LABELS,
+            "labels": module.labels,
             "model_config": OmegaConf.to_container(config.model, resolve=True),
             "git_commit": git_commit,
         },

@@ -1,0 +1,9 @@
+schema: peta
+root: data/peta
+remote: .dvc-storage
+validation_fraction: 0.2
+test_fraction: 0.2
+seed: 42
+excluded_subsets: [i-LID]
+image_url: https://mmlab.ie.cuhk.edu.hk/projects/PETA_files/PETA.zip
+image_sha256: 39cab77bee902be06d32d9a09c3e4579295c16cc352790fd718218443b8aacae

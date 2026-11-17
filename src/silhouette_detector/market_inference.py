@@ -49,7 +49,7 @@ def infer(config):
     with output.open("w", encoding="utf-8") as destination, torch.inference_mode():
         for images, _ in loader:
             logits = model(images.to(config.inference.device)).cpu()
-            predictions = decode(logits, config.inference.confidence_threshold)
+            predictions = decode(logits, config.inference.confidence_threshold, model.labels)
             for prediction in predictions:
                 record = dataset.records[offset]
                 destination.write(

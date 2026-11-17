@@ -10,7 +10,7 @@ import numpy as np
 import torch
 
 from .market_inference import ensure_checkpoint
-from .market_model import LABELS, load_model
+from .market_model import load_model
 
 
 def export_onnx(config):
@@ -102,12 +102,12 @@ def to_tensorrt(config):
 
 
 def package_triton(config):
-    _, preprocess = load_model(ensure_checkpoint(config.inference.checkpoint))
+    model, preprocess = load_model(ensure_checkpoint(config.inference.checkpoint))
     directory = Path(config.production.triton_repository) / "attributes"
     version = directory / "1"
     version.mkdir(parents=True, exist_ok=True)
     shutil.copyfile(config.production.onnx, version / "model.onnx")
-    dimension = sum(len(labels) for labels in LABELS.values())
+    dimension = sum(len(labels) for labels in model.labels.values())
     (directory / "config.pbtxt").write_text(
         'name: "attributes"\nplatform: "onnxruntime_onnx"\n'
         f"max_batch_size: {config.production.max_batch_size}\n"
