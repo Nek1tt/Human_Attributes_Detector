@@ -63,21 +63,15 @@ def grouped_split(dataset: EmbeddingDataset, validation_fraction: float = 0.2, s
     group_ids = sorted(groups)
     if len(group_ids) < 2:
         raise ValueError("At least two group_id values are required for a leakage-free split")
-    
+
     # This RNG provides a reproducible dataset split; it is not used for security.
     random.Random(seed).shuffle(group_ids)  # noqa: S311
     validation_count = min(len(group_ids) - 1, max(1, round(len(group_ids) * validation_fraction)))
     validation_groups = set(group_ids[:validation_count])
     train_indices = [
-        index
-        for group in group_ids
-        if group not in validation_groups
-        for index in groups[group]
+        index for group in group_ids if group not in validation_groups for index in groups[group]
     ]
     validation_indices = [
-        index
-        for group in group_ids
-        if group in validation_groups
-        for index in groups[group]
+        index for group in group_ids if group in validation_groups for index in groups[group]
     ]
     return Subset(dataset, train_indices), Subset(dataset, validation_indices)

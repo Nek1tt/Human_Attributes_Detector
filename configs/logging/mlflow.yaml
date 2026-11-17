@@ -1,0 +1,4 @@
+tracking_uri: http://127.0.0.1:8080
+experiment: human-attributes
+run_name: market-resnet18
+plots_dir: plots

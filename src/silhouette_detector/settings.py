@@ -40,6 +40,9 @@ class Settings:
     root: Path = field(default_factory=_project_root)
     detector_model: Path = field(default_factory=lambda: _project_root() / "models/yolo.onnx")
     attribute_backend: str = "resnet"
+    market_checkpoint: Path = field(
+        default_factory=lambda: _project_root() / "models/market_attributes.pt"
+    )
     resnet_checkpoint: Path = field(
         default_factory=lambda: _project_root() / "models/resnet_attributes.pt"
     )
@@ -89,9 +92,8 @@ class Settings:
             root=root,
             detector_model=path_value("HAD_DETECTOR_MODEL", "models/yolo.onnx"),
             attribute_backend=os.getenv("HAD_ATTRIBUTE_BACKEND", "resnet").strip().lower(),
-            resnet_checkpoint=path_value(
-                "HAD_RESNET_CHECKPOINT", "models/resnet_attributes.pt"
-            ),
+            market_checkpoint=path_value("HAD_MARKET_CHECKPOINT", "models/market_attributes.pt"),
+            resnet_checkpoint=path_value("HAD_RESNET_CHECKPOINT", "models/resnet_attributes.pt"),
             transformer_checkpoint=path_value(
                 "HAD_TRANSFORMER_CHECKPOINT", "models/vision_attr_transformer.pt"
             ),
@@ -101,13 +103,9 @@ class Settings:
             target_fps=float(os.getenv("HAD_TARGET_FPS", "10")),
             min_track_frames=_env_int("HAD_MIN_TRACK_FRAMES", 3, minimum=1),
             synchronous_attributes=_env_bool("HAD_SYNCHRONOUS_ATTRIBUTES", False),
-            max_upload_bytes=_env_int(
-                "HAD_MAX_UPLOAD_BYTES", 250 * 1024 * 1024, minimum=1024
-            ),
+            max_upload_bytes=_env_int("HAD_MAX_UPLOAD_BYTES", 250 * 1024 * 1024, minimum=1024),
             max_video_seconds=_env_int("HAD_MAX_VIDEO_SECONDS", 600, minimum=1),
-            max_frame_pixels=_env_int(
-                "HAD_MAX_FRAME_PIXELS", 3840 * 2160, minimum=224 * 224
-            ),
+            max_frame_pixels=_env_int("HAD_MAX_FRAME_PIXELS", 3840 * 2160, minimum=224 * 224),
             max_concurrent_jobs=_env_int("HAD_MAX_CONCURRENT_JOBS", 1, minimum=1),
             max_queued_jobs=_env_int("HAD_MAX_QUEUED_JOBS", 8, minimum=1),
             api_key=os.getenv("HAD_API_KEY") or None,
@@ -118,8 +116,8 @@ class Settings:
         return settings
 
     def validate(self) -> None:
-        if self.attribute_backend not in {"resnet", "minicpm", "none"}:
-            raise ValueError("HAD_ATTRIBUTE_BACKEND must be resnet, minicpm, or none")
+        if self.attribute_backend not in {"resnet", "minicpm", "market", "none"}:
+            raise ValueError("HAD_ATTRIBUTE_BACKEND must be resnet, minicpm, market, or none")
         if self.device not in {"auto", "cpu", "cuda"} and not self.device.startswith("cuda:"):
             raise ValueError("HAD_DEVICE must be auto, cpu, cuda, or cuda:<index>")
         if self.target_fps <= 0:

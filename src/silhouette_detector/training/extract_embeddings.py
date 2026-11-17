@@ -2,11 +2,12 @@
 
 from __future__ import annotations
 
-import argparse
 import json
 from pathlib import Path
+from types import SimpleNamespace
 from uuid import NAMESPACE_URL, uuid5
 
+import click
 import torch
 from PIL import Image
 
@@ -56,14 +57,24 @@ def extract_manifest(
         )
 
 
+def parse_args() -> SimpleNamespace:
+    @click.command()
+    @click.argument("manifest", type=click.Path(path_type=Path))
+    @click.argument("output_dir", type=click.Path(path_type=Path))
+    @click.option("--model-dir", type=click.Path(path_type=Path), required=True)
+    @click.option("--device", default="auto")
+    @click.option("--allow-unverified-model-code", is_flag=True)
+    def parse(**values):
+        return SimpleNamespace(**values)
+
+    result = parse.main(standalone_mode=False)
+    if isinstance(result, int):
+        raise SystemExit(result)
+    return result
+
+
 def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("manifest", type=Path)
-    parser.add_argument("output_dir", type=Path)
-    parser.add_argument("--model-dir", type=Path, required=True)
-    parser.add_argument("--device", default="auto")
-    parser.add_argument("--allow-unverified-model-code", action="store_true")
-    args = parser.parse_args()
+    args = parse_args()
     extract_manifest(
         args.manifest,
         args.output_dir,

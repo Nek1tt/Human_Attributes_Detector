@@ -41,4 +41,3 @@ if (-not $NoBundle) {
     & (Join-Path $PSScriptRoot "export_validation_bundle.ps1") `
         -EvidenceDir $OutputDir
 }
-

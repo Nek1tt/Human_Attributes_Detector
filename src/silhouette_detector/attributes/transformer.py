@@ -52,9 +52,7 @@ class PreNormEncoderLayer(nn.Module):
         drop_path_rate: float = 0.0,
     ) -> None:
         super().__init__()
-        self.self_attn = nn.MultiheadAttention(
-            d_model, nhead, dropout=dropout, batch_first=True
-        )
+        self.self_attn = nn.MultiheadAttention(d_model, nhead, dropout=dropout, batch_first=True)
         self.linear1 = nn.Linear(d_model, dim_feedforward)
         self.dropout = nn.Dropout(dropout)
         self.linear2 = nn.Linear(dim_feedforward, d_model)

@@ -1,494 +1,231 @@
-# Human Attributes Detector
+# Определение атрибутов людей
 
-Учебный проект для анализа людей на видео: YOLO обнаруживает человека, SFSORT сохраняет его
-`track_id`, а выбранный backend определяет визуальные атрибуты. Результат — размеченное MP4 и
-JSONL с покадровыми данными.
+Автор: Абрамов Никита.
 
-## Архитектура
+## Задача
 
-```mermaid
-flowchart LR
-    A["Видео"] --> B["YOLO ONNX"]
-    B --> C["SFSORT"]
-    C --> D["Кроп человека"]
-    D --> E{"AttributeBackend"}
-    E --> F["9 × ResNet50"]
-    E --> G["MiniCPM-o 2.6"]
-    G --> H["VisionAttrTransformer"]
-    F --> I["Атрибуты по track_id"]
-    H --> I
-    I --> J["MP4 + JSONL"]
-```
+Проект определяет внешние атрибуты человека: пол, возрастную группу,
+одежду и сумки. Для видео есть пайплайн: YOLO находит людей,
+SFSORT отслеживает их, классификатор обрабатывает кропы.
+Результат видео — MP4 с подписями и JSONL с предсказаниями.
 
-Модели атрибутов реализуют один интерфейс:
+## Данные
 
-```python
-class AttributeBackend:
-    def predict(self, image: PIL.Image.Image) -> dict[str, str]: ...
-```
+Используется [Market-1501](https://zheng-lab-anu.github.io/Project/project_reid.html)
+с [разметкой атрибутов](https://github.com/vana77/Market-1501_Attribute).
+В датасете 32 668 изображений, 1501 человек.
+751 человек относится к обучающей части, 750 — к тестовой.
+20% обучающих людей выделяются в validation. Один человек не попадает
+в разные части. Неразмеченные фоновые ID исключаются.
 
-Backend загружается один раз. Все видео используют один ограниченный worker классификации, поэтому
-несколько задач не создают несколько копий MiniCPM в VRAM.
+Фотографии скачиваются с открытого зеркала Hugging Face, разметка — из
+репозитория авторов. Версии и SHA256 указаны в `configs/data/market.yaml`.
+Данные хранятся через [DVC](https://dvc.org/doc), локальный remote — `.dvc-storage`.
+На новом компьютере он восстанавливается из открытых источников.
 
-## Что изменено в версии 2.0
+## Модель
 
-- удалены IDE-файлы, логи, сгенерированная HTML-документация и старый монолитный API;
-- оставлен один реально используемый трекер — SFSORT;
-- старый ResNet и новый MiniCPM + Transformer подключаются через общий интерфейс;
-- исправлен CPU-путь ResNet и добавлен явный выбор CPU/CUDA для PyTorch и ONNX Runtime;
-- NMS стал class-aware, координаты кропа ограничиваются размером кадра;
-- обычное окончание видео считается успешным завершением;
-- MiniCPM работает из локального snapshot и не обращается к Hub во время инференса;
-- checkpoint загружается с `weights_only=True`;
-- API использует случайные имена файлов, лимиты размера/длительности/разрешения и API key;
-- Telegram-бот стал тонким клиентом API, без токена в исходниках и общих файлов результатов;
-- исправлена схема embeddings, padding mask и group-aware train/validation split;
-- добавлены тесты, Ruff, `pip-audit` и CI.
+[ResNet18](https://docs.pytorch.org/vision/stable/models/generated/torchvision.models.resnet18.html)
+с предобученными признаками и линейным классификатором 12 атрибутов:
+пол, возраст, длина волос, длина рукава, длина и тип нижней одежды,
+головной убор, рюкзак, сумка, дамская сумка, цвет верха и низа.
+По умолчанию обучается только классификатор.
 
-## Ветки
+Вход — RGB-кроп человека размером 128×64. Обработка входа сохраняется
+в checkpoint. Неуказанный цвет исключается из обучения и метрик.
+Обучение выполняет [Lightning](https://lightning.ai/docs/pytorch/stable/).
 
-Текущая стабилизация MiniCPM и воспроизводимого окружения ведётся в ветке
-`detector-remaster`. Перед воспроизведением сохраните точный commit проекта:
+## Метрики
 
-```bash
-git rev-parse HEAD
-git status --short --branch
-```
+- CrossEntropy: средняя ошибка по атрибутам.
+- Accuracy: доля верных предсказаний среди известных меток.
+- Macro F1: среднее F1 по классам каждого атрибута, затем по атрибутам.
 
-Специальный AutoGPTQ не является веткой этого репозитория: установочный скрипт клонирует его в
-`.deps/AutoGPTQ-minicpmo` и проверяет отдельный commit.
+Loss и accuracy записываются для train и validation, F1 — для validation.
+Лучший checkpoint выбирается по validation macro F1.
+[MLflow](https://mlflow.org/docs/latest/) хранит метрики, параметры и Git commit.
+Три графика, CSV-логи и конфигурация сохраняются в `plots/training/version_*/`.
 
-## Проверенный Windows baseline
+## Этапы работы
 
-Полные CPU- и CUDA-проходы проверены 2–3 августа 2026 года. CPU-профиль использует
-`YOLO ONNX → SFSORT → ResNet`, CUDA-профиль —
-`YOLO ONNX → SFSORT → MiniCPM INT4 → VisionAttrTransformer`.
+1. Скачать фотографии и разметку, сохранить их в DVC.
+2. Разделить данные по людям и подготовить изображения.
+3. Обучить классификатор и сохранить лучший checkpoint.
+4. Выполнить предсказание на новых кропах людей.
+5. Экспортировать ONNX или подготовить модель для сервера.
 
-| Компонент | Зафиксированное значение |
-|---|---|
-| Windows | `Windows-10-10.0.26200-SP0` |
-| Python | `3.11.9` |
-| PyTorch | `2.8.0+cu128` |
-| torchvision / torchaudio | `0.23.0+cu128` / `2.8.0+cu128` |
-| CUDA в PyTorch / Toolkit | `12.8` / `12.8` |
-| nvcc / cuDNN | `12.8.61` / `91002` |
-| GPU | NVIDIA GeForce RTX 4060 Ti, `16379.375 MiB` VRAM |
-| NVIDIA driver | `591.86` |
-| ONNX Runtime CPU / CUDA | `onnxruntime==1.28.0` / `onnxruntime-gpu==1.26.0` |
-| Transformers | `4.44.2` |
-| AutoGPTQ | `0.8.0.dev0+cu121`, исходники пересобраны локально под PyTorch/CUDA baseline |
-| MiniCPM | `openbmb/MiniCPM-o-2_6-int4` revision `f347c848dd57a5dfdf5b6e32eb257101a6a8a07f` |
+Описание: [docs/proposal.md](docs/proposal.md).
+Разбор всех критериев: [docs/criteria.md](docs/criteria.md).
+Результаты проверок: [docs/checks.md](docs/checks.md).
+PDF описания: [docs/proposal.pdf](docs/proposal.pdf).
 
-Единый машиночитаемый источник этих значений —
-[`reproducibility/windows-cuda-baseline.json`](reproducibility/windows-cuda-baseline.json).
-Полные списки зависимостей сохранены в двух файлах: 40 точных CPU-пакетов в
-[`windows-cpu-py311.lock.txt`](requirements/locks/windows-cpu-py311.lock.txt) и 101 CUDA-пакет в
-[`windows-cuda-py311.lock.txt`](requirements/locks/windows-cuda-py311.lock.txt). Локальные
-editable-установки проекта и AutoGPTQ намеренно не включены: их версии определяются Git commit.
+## Setup
 
-SHA256 в baseline нужен скриптам, чтобы автоматически отличить правильные веса и snapshot от
-другого файла с тем же именем. При обычной установке копировать или вводить хеши вручную не нужно.
-
-## Подтверждённые результаты
-
-Оба видеотеста использовали один тестовый MP4: 33 обрабатываемых кадра, `854×478`, `5 FPS`, два
-track ID. Время `video job` включает полный HTTP-проход от загрузки до готовых MP4 и JSONL.
-
-| Профиль | Backend атрибутов | Фактический YOLO provider | Video job | Кадры | Детекции | С атрибутами | Результат |
-|---|---|---|---:|---:|---:|---:|---|
-| Windows CPU | ResNet | `CPUExecutionProvider` | `14.094 s` | 33 | 66 | 66 | PASS |
-| Windows CUDA | MiniCPM + Transformer | `CUDAExecutionProvider` | `28.250 s` | 33 | 66 | 66 | PASS |
-
-Эти строки подтверждают воспроизводимость двух разных backends, но не являются честным сравнением
-скорости CPU и GPU: ResNet и MiniCPM решают этап атрибутов разными моделями.
-
-Отдельный CUDA-анализ MiniCPM + Transformer на RTX 4060 Ti:
-
-| Замер | Значение |
-|---|---:|
-| Загрузка backend | `18.133 s` |
-| Первый полный inference | `1.596 s` |
-| Среднее из 5 прогретых inference | `779.276 ms` |
-| Диапазон прогретых inference | `770.285–787.100 ms` |
-| Peak allocated VRAM | `9274.949 MiB` |
-| Рост live allocated VRAM после 5 повторов | `0 MiB` |
-
-Все исходные числа также записаны в
-[`reproducibility/windows-cuda-baseline.json`](reproducibility/windows-cuda-baseline.json).
-
-## Требования
-
-- для проверенного Windows baseline: 64-bit Python `3.11.9`;
-- FFmpeg в `PATH` (рекомендуется даже при использовании OpenCV);
-- Git submodules;
-- для MiniCPM INT4: CUDA Toolkit `12.8`, совместимый NVIDIA driver и Visual Studio 2022 Build
-  Tools с workload **Desktop development with C++**;
-- веса моделей, которых нет в Git.
-
-Клонирование:
+Нужны Git, Python 3.11 или 3.12 и [uv](https://docs.astral.sh/uv/).
+Все команды выполняются из корня репозитория.
 
 ```bash
 git clone --recurse-submodules https://github.com/Nek1tt/Human_Attributes_Detector.git
 cd Human_Attributes_Detector
+python -m pip install uv
+uv sync --locked --extra cpu --extra train --extra dev --extra export --extra api
+uv run --no-sync pre-commit install
+uv run --no-sync pre-commit run -a
 ```
 
-Если репозиторий уже клонирован:
+`uv sync` создаёт `.venv` и устанавливает версии из `uv.lock`.
+Для предсказания с готовым checkpoint достаточно extra `cpu`.
+Для учебных команд с DVC нужен также `train`.
+MiniCPM и Telegram-бот устанавливаются отдельно.
+
+Перед сдачей код должен находиться в `main` или `master`.
+Исходная версия была в `detector-remaster`.
+
+## Train
+
+Скачать и подготовить данные:
 
 ```bash
-git submodule update --init --recursive
+uv run --no-sync had download
 ```
 
-### Windows: CPU (YOLO ONNX + ResNet)
-
-Положите собственное короткое видео в игнорируемый Git каталог `test-data/`, а YOLO и ResNet — в
-`models/`. Затем установите проверенный CPU lock:
-
-```powershell
-.\scripts\setup_cpu_windows.ps1
-```
-
-Скрипт требует именно Python `3.11.9`. Отдельный ResNet-видеотест:
-
-```powershell
-.\scripts\run_resnet_video_test.ps1 `
-  -Video "test-data\person.mp4" `
-  -Yolo "models\yolov8s_576x1024_v2.onnx" `
-  -ResNetCheckpoint "models\resnet_ens_11.19_e60_s0.782.pt"
-```
-
-Полная проверка воспроизводимости выполняется одной командой. Она создаёт два новых окружения:
-bootstrap для формирования CPU lock и второе чистое окружение, устанавливаемое только из lock.
-Во втором окружении выполняются unit-тесты и полный видеопроход YOLO → SFSORT → ResNet → MP4 +
-JSONL:
-
-```powershell
-.\scripts\verify_clean_cpu_install.ps1 `
-  -Video "test-data\person.mp4" `
-  -Yolo "models\yolov8s_576x1024_v2.onnx" `
-  -ResNetCheckpoint "models\resnet_ens_11.19_e60_s0.782.pt"
-```
-
-Команда создаёт два временных окружения, повторно экспортирует CPU lock и проверяет, что он
-совпадает с зафиксированным. Отчёты появляются в `var\cpu-clean-validation-*`. Веса, test-data,
-snapshot, venv и секреты в Git и validation bundle не включаются.
-
-На CPU поддерживаются YOLO ONNX, SFSORT и ResNet. Проверенный MiniCPM INT4 использует GPTQ и
-AutoGPTQ, поэтому требует CUDA.
-
-### Windows: NVIDIA CUDA + MiniCPM INT4
-
-В корне репозитория выполните:
-
-```powershell
-.\scripts\setup_minicpm_int4_windows.ps1
-```
-
-Скрипт:
-
-- создаёт `.venv-minicpm-torch280` на Python `3.11.9`;
-- устанавливает `torch`, `torchvision` и `torchaudio` для CUDA `12.8`;
-- устанавливает `onnxruntime-gpu==1.26.0`, совместимый с CUDA 12.8 и cuDNN 9;
-- устанавливает проверенные зависимости remote code MiniCPM;
-- клонирует `https://github.com/RanchiZhao/AutoGPTQ.git`;
-- checkout commit `a9c8109ef450793e3d890c76a36f22177fcbbe28`;
-- применяет проверенный патч 16 устаревших CUDA-вызовов и собирает расширения;
-- запускает импорт всех зависимостей, проверку версий и `pip check`.
-
-Экспортировать CUDA lock нужно только после намеренного изменения зависимостей:
-
-```powershell
-.\scripts\export_windows_lock.ps1 -Target cuda
-```
-
-Обычная установка уже использует зафиксированный lock автоматически. После установки проверьте точные
-версии и CUDA-расширения:
-
-```powershell
-.\scripts\verify_minicpm_env.ps1
-```
-
-Подготовьте локальный snapshot exact revision и запустите полный CUDA-видеотест:
-
-```powershell
-$MiniCPMDir = "C:\Users\USERNAME\.cache\huggingface\hub\models--openbmb--MiniCPM-o-2_6-int4\snapshots\f347c848dd57a5dfdf5b6e32eb257101a6a8a07f"
-
-.\scripts\prepare_minicpm_snapshot.ps1 -MiniCPMModelDir $MiniCPMDir
-
-.\scripts\run_minicpm_video_test.ps1 `
-  -Video "test-data\person.mp4" `
-  -Yolo "models\yolov8s_576x1024_v2.onnx" `
-  -MiniCPMModelDir $MiniCPMDir `
-  -TransformerCheckpoint "models\MiniCPM-o 2.6int4 weights.pt"
-```
-
-Не устанавливайте одновременно `onnxruntime` и `onnxruntime-gpu` в одно окружение.
-
-## Веса
-
-| Артефакт | Переменная | Путь по умолчанию |
-|---|---|---|
-| YOLO ONNX | `HAD_DETECTOR_MODEL` | `models/yolo.onnx` |
-| ResNet ensemble | `HAD_RESNET_CHECKPOINT` | `models/resnet_attributes.pt` |
-| VisionAttrTransformer | `HAD_TRANSFORMER_CHECKPOINT` | `models/vision_attr_transformer.pt` |
-| MiniCPM snapshot | `HAD_MINICPM_MODEL_DIR` | `models/minicpm-o-2_6` |
-
-Старые имена, которые стоит искать на исходном компьютере:
-
-- `yolov8s_576x1024_v2.onnx`;
-- `resnet_ens_11.19_e60_s0.782.pt`;
-- `best_checkpoint.pt`;
-- `MiniCPM-o 2.6int4 weights.pt`.
-
-Последние два имени относятся к одному checkpoint вашего `VisionAttrTransformer`, а не к весам
-самой MiniCPM.
-
-Проверенный YOLO checkpoint:
-
-- размер: `44805580` bytes;
-- SHA256: `c0d4889317191548e8c18a31b4b91f8d2b28842102eebe4523f9f1593a9ea933`;
-- вход ONNX: `1024×576`.
-
-Проверенный Transformer checkpoint:
-
-- размер: `585660899` bytes;
-- SHA256: `099510a29497162f9afbab9cad1b5092fe246d70869bb90bd7b6e2ed2b6affe2`;
-- архитектура: `input_dim=3584`, `hidden_dim=768`, `num_layers=6`, `num_heads=12`;
-- девять attribute heads: `3, 6, 7, 13, 13, 8, 4, 3, 3` классов.
-
-Checkpoint не хранится в Git. Для полного воспроизведения его нужно получить отдельно и положить в
-`models/`; validation-скрипт сам сверит SHA256 перед загрузкой.
-
-Проверенный ResNet checkpoint:
-
-- размер: `943757326` bytes;
-- SHA256: `0c0ae02e9a5990c6adbd1ac1d2ca0e6a88c21091b87ee7de621115b328447a91`.
-
-### Локальный MiniCPM
-
-Для уже загруженного Hugging Face snapshot выполните:
-
-```powershell
-.\scripts\prepare_minicpm_snapshot.ps1 `
-  -MiniCPMModelDir "C:\Users\USERNAME\.cache\huggingface\hub\models--openbmb--MiniCPM-o-2_6-int4\snapshots\f347c848dd57a5dfdf5b6e32eb257101a6a8a07f"
-```
-
-Для скачивания exact revision в новый каталог добавьте `-Download`:
-
-```powershell
-.\scripts\prepare_minicpm_snapshot.ps1 `
-  -MiniCPMModelDir "models\minicpm-o-2_6-int4" `
-  -Download
-```
-
-Скрипт никогда не использует `main`: он скачивает revision
-`f347c848dd57a5dfdf5b6e32eb257101a6a8a07f`, применяет зафиксированное исправление отсутствующего
-`typing.List` в `resampler.py`, записывает `model-manifest.json` и сверяет SHA256 всех восьми
-Python-файлов remote code с baseline. После этого `HAD_ALLOW_UNVERIFIED_MODEL_CODE` не нужен.
-Runtime использует `local_files_only=True` и при каждой загрузке повторно сверяет manifest.
-
-MiniCPM-o 4.5 является более новой omni-моделью, а MiniCPM-V 4.6 — более новой и заметно меньшей
-vision-моделью. Они **не являются drop-in заменой**: размер и распределение визуальных embeddings
-изменились, поэтому старый `VisionAttrTransformer` нужно переобучить. До появления датасета и нового
-checkpoint проект намеренно сохраняет MiniCPM-o 2.6. Официальные источники:
-<https://github.com/OpenBMB/MiniCPM-V> и <https://huggingface.co/openbmb/MiniCPM-o-4_5>.
-
-## Сбор полного отчёта об окружении
-
-После подготовки snapshot и checkpoint выполните одну команду:
-
-```powershell
-.\scripts\capture_reproducibility.ps1 `
-  -MiniCPMModelDir "C:\Users\USERNAME\.cache\huggingface\hub\models--openbmb--MiniCPM-o-2_6-int4\snapshots\f347c848dd57a5dfdf5b6e32eb257101a6a8a07f" `
-  -TransformerCheckpoint "models\MiniCPM-o 2.6int4 weights.pt" `
-  -ResNetCheckpoint "models\resnet_ens_11.19_e60_s0.782.pt"
-```
-
-В `var\reproducibility-YYYYMMDD-HHMMSS\` появятся:
-
-| Файл | Содержимое |
-|---|---|
-| `environment-report.json` | Python, все packages, PyTorch/CUDA/cuDNN, GPU/VRAM/driver, `nvcc`, Git, AutoGPTQ, модели, Docker bases и baseline checks |
-| `pip-freeze.txt` | исходный полный `pip freeze --all`, включая сведения об editable installs |
-| `requirements-lock-candidate.txt` | переносимый кандидат lock без editable проекта и AutoGPTQ |
-
-По умолчанию команда завершается ошибкой при любом отличии от baseline. Чтобы только собрать отчёт
-из другого окружения, используйте `-AllowBaselineDifferences`.
-
-Отдельный подробный CUDA-анализ с одной загрузкой backend и пятью inference:
-
-```powershell
-.\scripts\run_minicpm_transformer_analysis.ps1 `
-  -MiniCPMModelDir $MiniCPMDir `
-  -TransformerCheckpoint $TransformerCheckpoint `
-  -InputImage "test-data\example1.jpg" `
-  -Repeats 5
-```
-
-После создания проверенного `model-manifest.json` флаг `-AllowUnverifiedModelCode` здесь не нужен.
-
-Полный MiniCPM-видеотест через тот же HTTP pipeline:
-
-```powershell
-.\scripts\run_minicpm_video_test.ps1 `
-  -Video "test-data\person.mp4" `
-  -Yolo "models\yolov8s_576x1024_v2.onnx" `
-  -MiniCPMModelDir $MiniCPMDir `
-  -TransformerCheckpoint "models\MiniCPM-o 2.6int4 weights.pt"
-```
-
-Скрипт использует `.venv-minicpm-torch280`, `cuda` и проверенный локальный manifest по
-умолчанию. Он проверяет реальный MP4, наличие детекций и track ID, все девять API-ключей,
-допустимость русских меток и наличие рассчитанных атрибутов в JSONL. Результаты и готовый ZIP
-появляются в `var\video-tests\*-minicpm`.
-
-## Docker
-
-Base images закреплены одновременно tag и multi-platform digest:
-
-| Файл | Base image |
-|---|---|
-| `Dockerfile` | `python:3.11.9-slim-bookworm@sha256:8fb099...c60c317` |
-| `Dockerfile.gpu` | `nvidia/cuda:12.8.1-cudnn-runtime-ubuntu24.04@sha256:ac55d1...1eb34bc` |
+В отдельном терминале запустите MLflow:
 
 ```bash
-docker build -t human-attributes-detector:cpu -f Dockerfile .
-docker build -t human-attributes-detector:gpu -f Dockerfile.gpu .
+uv run --no-sync mlflow server --host 127.0.0.1 --port 8080 --workers 1 --backend-store-uri sqlite:///var/mlflow.db --default-artifact-root ./var/mlartifacts
 ```
 
-Оба Dockerfile используют те же прямые зависимости, что и локальная установка. На данном этапе
-подтверждены Windows CPU и Windows CUDA; Docker CPU/GPU ещё предстоит собрать и проверить.
-Текущий `Dockerfile.gpu` покрывает CUDA-путь ONNX/ResNet, но пока не собирает специальный AutoGPTQ
-для MiniCPM INT4.
-
-## Конфигурация
-
-Скопируйте пример и задайте собственный длинный API key:
+Обучение:
 
 ```bash
-cp .env.example .env
+uv run --no-sync had train
 ```
 
-Файл `.env` не читается автоматически и не коммитится. Передайте переменные через оболочку,
-Docker `--env-file` или менеджер секретов.
+Команда вызывает DVC pull. При отсутствии local remote данные
+восстанавливаются через `download_data()`. Начальные веса ResNet18
+скачиваются в `.cache/torch`. Итог — `models/market_attributes.pt`,
+модель также сохраняется в DVC.
 
-Основные значения:
+Настройки меняются через [Hydra](https://hydra.cc/docs/intro/):
 
 ```bash
-export HAD_ATTRIBUTE_BACKEND=resnet   # resnet | minicpm | none
-export HAD_DEVICE=auto                # auto | cpu | cuda | cuda:0
-export HAD_API_KEY='replace-with-at-least-24-random-characters'
+uv run --no-sync had train training.epochs=10 training.learning_rate=0.0005
+uv run --no-sync had train model.freeze_backbone=false
 ```
 
-Если `HAD_API_KEY` не задан, API принимает запросы только с loopback-адреса. Для сетевого доступа
-ключ обязателен.
+Группы конфигов в `configs/`: data, preprocess, model, training,
+logging, inference и production. Адрес MLflow — `logging.tracking_uri`.
 
-## Запуск API
+## Production preparation
+
+Для предсказания нужны пакет, зависимости `cpu` и checkpoint.
+Для передачи модели скопируйте `.dvc-storage` и выполните `dvc pull`
+либо обучите модель заново. Данные и веса в Git не хранятся.
+
+ONNX-экспорт и проверка совпадения с PyTorch:
 
 ```bash
-./run.sh
+uv run --no-sync had export
 ```
 
-Создание задачи:
+Файл — `models/market_attributes.onnx`. Вход `images`: нормализованный
+FP32-тензор `[batch, 3, 128, 64]`. Выход `logits`: `[batch, 39]`.
+Порядок атрибутов и классов задан в `market_model.LABELS`.
+
+На компьютере с NVIDIA TensorRT и `trtexec` в PATH:
 
 ```bash
-curl -X POST http://127.0.0.1:8000/api/v1/jobs \
-  -H "X-API-Key: $HAD_API_KEY" \
-  -F "file=@video.mp4"
+uv run --no-sync had tensorrt
 ```
 
-Статус и результат:
+Результат — `models/market_attributes.engine`. Engine собирается на целевой GPU.
+
+## Infer
+
+Вход — JPEG/PNG с одним человеком, обрезанный по его границам.
+Примеры находятся в DVC-датасете, папка
+`data/market/Market-1501-v15.09.15/bounding_box_train`.
+
+На тестовой части:
 
 ```bash
-curl -H "X-API-Key: $HAD_API_KEY" http://127.0.0.1:8000/api/v1/jobs/JOB_ID
-curl -o result.mp4 -H "X-API-Key: $HAD_API_KEY" \
-  http://127.0.0.1:8000/api/v1/jobs/JOB_ID/result
+uv run --no-sync had infer inference.limit=10
 ```
 
-После скачивания результат можно удалить с сервера:
+На своём изображении:
 
 ```bash
-curl -X DELETE -H "X-API-Key: $HAD_API_KEY" \
-  http://127.0.0.1:8000/api/v1/jobs/JOB_ID
+uv run --no-sync had infer inference.image=person.jpg
 ```
 
-API не принимает произвольные URL. Это намеренно исключает SSRF и случайный доступ к локальным
-камерам/метаданным облачной машины.
+Результат — `var/predictions.jsonl`: строка на изображение,
+поля `image` и `attributes`. Названия классов на английском.
+Возраст: `young`, `teenager`, `adult`, `old`.
+`inference.confidence_threshold` задаёт порог уверенности;
+ниже порога возвращается `unknown`.
 
-## Telegram-бот
+### MLflow Serving
 
 ```bash
-export TELEGRAM_BOT_TOKEN='token-from-BotFather'
-export HAD_API_BASE='http://127.0.0.1:8000'
-export HAD_API_KEY='the-same-api-key'
-had-bot
+uv run --no-sync had package
+uv run --no-sync mlflow models serve -m var/serving-model --env-manager local --host 127.0.0.1 --port 5001
+uv run --no-sync python scripts/request_prediction.py person.jpg
 ```
 
-Старый Telegram-токен из Git-истории необходимо отозвать через BotFather. Удаление файла из нового
-commit не аннулирует ранее опубликованный токен.
+В запросе JSON с колонкой `image`, содержащей изображение в Base64.
+Для сравнения с локальной моделью добавьте `--check-with models/market_attributes.pt`.
+При повторной упаковке укажите новую папку:
+`had package production.mlflow_model=var/serving-model-v2`.
 
-## Обучение Transformer
+### Triton
 
-Датасет в репозитории отсутствует. Создайте manifest следующего формата (полный пример находится в
-`examples/dataset_manifest.example.json`):
-
-```json
-[
-  {
-    "image": "/data/person_001/frame_001.jpg",
-    "group_id": "person_001",
-    "labels": {
-      "пол": "мужчина",
-      "возраст": "17-35 лет"
-    }
-  }
-]
-```
-
-`group_id` должен обозначать человека или исходное видео. Все кадры одной группы попадают только в
-train или только в validation.
+После ONNX-экспорта:
 
 ```bash
-had-extract-embeddings dataset.json embeddings/ \
-  --model-dir models/minicpm-o-2_6-int4 --device cuda
-
-had-train-transformer embeddings/ models/vision_attr_transformer.pt --device cuda
+uv run --no-sync had triton
+docker run --rm -p 8000:8000 -v "${PWD}/var/triton-models:/models" nvcr.io/nvidia/tritonserver:26.10-py3 tritonserver --model-repository=/models
+uv run --no-sync python scripts/request_triton.py person.jpg
 ```
 
-Сохранённый embedding имеет форму `[N, P, D]`, а batch — `[B, N, P, D]`. Маска строится до padding,
-поэтому примеры разной длины корректно объединяются.
+Клиент нормализует изображение и переводит выходные логиты в атрибуты.
 
-## Проверки
+### Видео и старые веса
+
+Backends `resnet` и `minicpm` сохранены.
+Установка и видеотесты — в [docs/video.md](docs/video.md).
+Новая модель подключается к тому же видеопайплайну:
+
+```powershell
+$env:HAD_ATTRIBUTE_BACKEND = "market"
+$env:HAD_MARKET_CHECKPOINT = "models/market_attributes.pt"
+$env:HAD_DETECTOR_MODEL = "models/yolo.onnx"
+uv run --no-sync had-api
+```
+
+YOLO-веса нужны отдельно. Видео API сохраняет девять старых ключей.
+Возраст и тип верхней одежды возвращаются как «не определен»:
+в Market-1501 нет классов, совпадающих со старой схемой.
+Полные 12 атрибутов возвращают `had infer` и MLflow Serving.
+
+## Самостоятельные проверки
 
 ```bash
-pip install -r requirements/dev.txt
-ruff check .
-python -m compileall -q src tests scripts
-python -m unittest discover -s tests -v
-pip-audit
+uv run --no-sync pre-commit run -a
+uv run --no-sync python -m unittest discover -s tests -v
 ```
 
-Тесты CPU/GPU проверяют выбор устройства и провайдера без необходимости иметь CUDA в CI.
-Полноценный smoke test требует реальные YOLO и attribute checkpoints; эти файлы в Git отсутствуют.
+Все команды с коротким обучением на реальных данных
+(MLflow должен быть запущен):
 
-## Структура
-
-```text
-src/silhouette_detector/
-├── app.py                 # безопасный API и bounded job manager
-├── detection.py           # YOLO ONNX
-├── tracking.py            # единственный tracker adapter
-├── pipeline.py            # видео и покадровый pipeline
-├── attribute_service.py   # одна модель и одна очередь
-├── attributes/
-│   ├── base.py            # общий интерфейс
-│   ├── resnet.py          # старый backend
-│   ├── minicpm.py         # локальный MiniCPM + Transformer
-│   └── transformer.py     # обучаемая голова
-└── training/              # embeddings и group-aware обучение
+```bash
+uv run --no-sync python scripts/check_project.py
 ```
 
-## Ограничения воспроизводимости
+То же с полным обучением:
 
-В исходной Git-истории нет весов YOLO, ResNet, Transformer, датасета или сохранённых метрик. Код и
-тесты проверяют интерфейсы и корректность CPU/GPU-ветвей, но качество и скорость можно подтвердить
-только после восстановления этих артефактов.
+```bash
+uv run --no-sync python scripts/check_project.py --full-training
+```
+
+Для PowerShell есть `scripts/check_project.ps1` с флагом `-FullTraining`.
+Короткая проверка использует отдельные `models/smoke_attributes.pt` и `var/smoke-plots`.

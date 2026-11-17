@@ -51,9 +51,7 @@ def select_onnx_providers(requested: str, available: Iterable[str]) -> list[str]
     raise ValueError(f"Unsupported device: {requested}")
 
 
-def validate_onnx_session_providers(
-    requested: str, active: Iterable[str]
-) -> tuple[str, ...]:
+def validate_onnx_session_providers(requested: str, active: Iterable[str]) -> tuple[str, ...]:
     """Reject ONNX Runtime's silent CPU fallback for an explicit CUDA request."""
 
     active_providers = tuple(active)

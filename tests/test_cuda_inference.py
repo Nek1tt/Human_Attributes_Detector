@@ -6,15 +6,16 @@ fails instead of falling back to CPU when CUDA or a required model is unavailabl
 
 from __future__ import annotations
 
-import argparse
 import json
 import logging
 import sys
 import time
 from datetime import datetime
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 
+import click
 from PIL import Image
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -71,22 +72,26 @@ def _timed_cuda_prediction(torch: Any, callback: Any) -> tuple[dict[str, str], f
     return prediction, elapsed_ms, peak_mb
 
 
-def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description="Run real ResNet and MiniCPM+Transformer inference strictly on CUDA."
-    )
-    parser.add_argument("--input", required=True, help="Image or video; first video frame is used")
-    parser.add_argument("--device", default="cuda:0", help="CUDA device (default: cuda:0)")
-    parser.add_argument("--resnet", help="ResNet checkpoint path")
-    parser.add_argument("--transformer", help="VisionAttrTransformer checkpoint path")
-    parser.add_argument("--minicpm-model-dir", help="Local MiniCPM snapshot directory")
-    parser.add_argument(
+def parse_args() -> SimpleNamespace:
+    @click.command()
+    @click.option("--input", required=True, help="Image or video; first video frame is used")
+    @click.option("--device", default="cuda:0", help="CUDA device (default: cuda:0)")
+    @click.option("--resnet", help="ResNet checkpoint path")
+    @click.option("--transformer", help="VisionAttrTransformer checkpoint path")
+    @click.option("--minicpm-model-dir", help="Local MiniCPM snapshot directory")
+    @click.option(
         "--allow-unverified-model-code",
-        action="store_true",
+        is_flag=True,
         help="Allow a local MiniCPM directory without the generated verification manifest",
     )
-    parser.add_argument("--output-dir", help="Artifact directory (default: var/cuda-tests/<time>)")
-    return parser.parse_args()
+    @click.option("--output-dir", help="Artifact directory (default: var/cuda-tests/<time>)")
+    def parse(**values):
+        return SimpleNamespace(**values)
+
+    result = parse.main(standalone_mode=False)
+    if isinstance(result, int):
+        raise SystemExit(result)
+    return result
 
 
 def main() -> int:
@@ -207,9 +212,7 @@ def main() -> int:
         logging.exception("CUDA INFERENCE TEST FAILED")
         return_code = 1
     finally:
-        report_path.write_text(
-            json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8"
-        )
+        report_path.write_text(json.dumps(report, ensure_ascii=False, indent=2), encoding="utf-8")
         logging.info("Report: %s", report_path)
         logging.info("Log: %s", log_path)
     return return_code

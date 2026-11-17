@@ -229,9 +229,7 @@ class MiniCPMTransformerBackend(AttributeBackend):
         with torch.inference_mode():
             logits = self.classifier(batch, mask)
         prediction = {
-            RU_TO_API[attribute]: ATTRIBUTE_LABELS_RU[attribute][
-                int(output.argmax(dim=1).item())
-            ]
+            RU_TO_API[attribute]: ATTRIBUTE_LABELS_RU[attribute][int(output.argmax(dim=1).item())]
             for attribute, output in logits.items()
         }
         return self.normalize(prediction)

@@ -22,9 +22,7 @@ class ReproducibilityConsistencyTests(unittest.TestCase):
     @classmethod
     def setUpClass(cls) -> None:
         cls.baseline = json.loads(BASELINE_PATH.read_text(encoding="utf-8"))
-        cls.pyproject = tomllib.loads(
-            (PROJECT_ROOT / "pyproject.toml").read_text(encoding="utf-8")
-        )
+        cls.pyproject = tomllib.loads((PROJECT_ROOT / "pyproject.toml").read_text(encoding="utf-8"))
 
     def test_minicpm_source_constants_match_baseline(self) -> None:
         self.assertEqual(PINNED_MINICPM_REPO, self.baseline["minicpm"]["repository"])
@@ -70,9 +68,7 @@ class ReproducibilityConsistencyTests(unittest.TestCase):
             self.assertEqual(match.group(1), image)
             self.assertRegex(image, r"@sha256:[0-9a-f]{64}$")
             requirement = (
-                "requirements/cpu.txt"
-                if filename == "Dockerfile"
-                else "requirements/gpu.txt"
+                "requirements/cpu.txt" if filename == "Dockerfile" else "requirements/gpu.txt"
             )
             self.assertIn(requirement, text)
 
@@ -87,7 +83,7 @@ class ReproducibilityConsistencyTests(unittest.TestCase):
         self.assertIn("release 12\\.8", installer)
 
     def test_readme_exposes_model_identity_and_capture_command(self) -> None:
-        readme = (PROJECT_ROOT / "README.md").read_text(encoding="utf-8")
+        readme = (PROJECT_ROOT / "docs" / "video.md").read_text(encoding="utf-8")
         self.assertIn(self.baseline["minicpm"]["revision"], readme)
         self.assertIn(self.baseline["yolo"]["checkpoint_sha256"], readme)
         self.assertIn(self.baseline["transformer"]["checkpoint_sha256"], readme)
@@ -97,18 +93,12 @@ class ReproducibilityConsistencyTests(unittest.TestCase):
         self.assertIn("run_minicpm_video_test.ps1", readme)
 
     def test_cpu_and_video_scripts_are_wired_to_real_system_test(self) -> None:
-        setup = (PROJECT_ROOT / "scripts" / "setup_cpu_windows.ps1").read_text(
-            encoding="utf-8"
-        )
+        setup = (PROJECT_ROOT / "scripts" / "setup_cpu_windows.ps1").read_text(encoding="utf-8")
         clean = (PROJECT_ROOT / "scripts" / "verify_clean_cpu_install.ps1").read_text(
             encoding="utf-8"
         )
-        video = (PROJECT_ROOT / "scripts" / "run_video_test.ps1").read_text(
-            encoding="utf-8"
-        )
-        system_test = (PROJECT_ROOT / "tests" / "test_system.py").read_text(
-            encoding="utf-8"
-        )
+        video = (PROJECT_ROOT / "scripts" / "run_video_test.ps1").read_text(encoding="utf-8")
+        system_test = (PROJECT_ROOT / "tests" / "test_system.py").read_text(encoding="utf-8")
 
         self.assertIn("[switch]$RequireNew", setup)
         self.assertIn('"torch==2.8.0"', setup)
@@ -123,7 +113,7 @@ class ReproducibilityConsistencyTests(unittest.TestCase):
         self.assertIn("YOLO checkpoint SHA256 mismatch", video)
         self.assertIn("checkpoint SHA256 mismatch", video)
         self.assertIn("python_files_sha256_after_patch", video)
-        self.assertIn('choices=("resnet", "minicpm", "none")', system_test)
+        self.assertIn('click.Choice(("resnet", "minicpm", "none"))', system_test)
         self.assertIn("HAD_MINICPM_MODEL_DIR", system_test)
         self.assertIn('"HAD_TEST_PROFILE": args.device', system_test)
         self.assertIn('"HAD_REQUIRE_CUDA_TESTS": (', system_test)
@@ -138,9 +128,7 @@ class ReproducibilityConsistencyTests(unittest.TestCase):
         self.assertNotIn("test_transformer_checkpoint_runs_on_cpu_and_cuda", device_tests)
 
     def test_all_recorded_hashes_are_sha256(self) -> None:
-        hashes = list(
-            self.baseline["minicpm"]["python_files_sha256_after_patch"].values()
-        ) + [
+        hashes = list(self.baseline["minicpm"]["python_files_sha256_after_patch"].values()) + [
             self.baseline["minicpm"]["config_sha256"],
             self.baseline["yolo"]["checkpoint_sha256"],
             self.baseline["transformer"]["checkpoint_sha256"],
@@ -162,9 +150,7 @@ class ReproducibilityConsistencyTests(unittest.TestCase):
         pins = [
             line.strip()
             for line in text.splitlines()
-            if line.strip()
-            and not line.startswith("#")
-            and not line.startswith("--")
+            if line.strip() and not line.startswith("#") and not line.startswith("--")
         ]
         self.assertEqual(len(pins), lock["exact_package_pins"])
         self.assertTrue(all(re.fullmatch(r"[A-Za-z0-9_.-]+==[^\s]+", pin) for pin in pins))
@@ -184,17 +170,13 @@ class ReproducibilityConsistencyTests(unittest.TestCase):
             self.assertEqual(versions.get(name), self.baseline["pytorch"][name])
         self.assertIn("onnxruntime-gpu", versions)
         self.assertNotIn("onnxruntime", versions)
-        self.assertEqual(
-            versions["onnxruntime-gpu"], self.baseline["onnxruntime"]["cuda_version"]
-        )
+        self.assertEqual(versions["onnxruntime-gpu"], self.baseline["onnxruntime"]["cuda_version"])
 
     def test_windows_cpu_lock_matches_validated_baseline(self) -> None:
         versions = self._lock_versions("windows_cpu_py311")
         self.assertEqual(versions.get("torch"), "2.8.0+cpu")
         self.assertEqual(versions.get("torchvision"), "0.23.0+cpu")
-        self.assertEqual(
-            versions.get("onnxruntime"), self.baseline["onnxruntime"]["cpu_version"]
-        )
+        self.assertEqual(versions.get("onnxruntime"), self.baseline["onnxruntime"]["cpu_version"])
         self.assertNotIn("onnxruntime-gpu", versions)
         self.assertNotIn("auto-gptq", versions)
 
@@ -206,9 +188,7 @@ class ReproducibilityConsistencyTests(unittest.TestCase):
         )
         self.assertIn("onnxruntime>=1.28,<2", optional["cpu"])
 
-        verifier = (PROJECT_ROOT / "scripts" / "verify_minicpm_env.ps1").read_text(
-            encoding="utf-8"
-        )
+        verifier = (PROJECT_ROOT / "scripts" / "verify_minicpm_env.ps1").read_text(encoding="utf-8")
         self.assertIn(
             f'"onnxruntime-gpu": "{self.baseline["onnxruntime"]["cuda_version"]}"',
             verifier,

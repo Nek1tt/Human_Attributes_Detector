@@ -1,0 +1,62 @@
+"""Project commands; configuration overrides use Hydra syntax."""
+
+import sys
+from pathlib import Path
+
+import click
+from hydra import compose, initialize_config_dir
+
+
+def load_config(overrides):
+    directory = Path.cwd() / "configs"
+    with initialize_config_dir(config_dir=str(directory.resolve()), version_base="1.3"):
+        return compose(config_name="config", overrides=list(overrides))
+
+
+@click.command()
+@click.argument(
+    "operation",
+    type=click.Choice(
+        [
+            "download",
+            "train",
+            "infer",
+            "export",
+            "package",
+            "tensorrt",
+            "triton",
+        ]
+    ),
+)
+@click.argument("overrides", nargs=-1)
+def main(operation, overrides):
+    for stream in (sys.stdout, sys.stderr):
+        if hasattr(stream, "reconfigure"):
+            stream.reconfigure(encoding="utf-8")
+    config = load_config(overrides)
+    if operation == "download":
+        from .market_data import download_data
+
+        download_data(config.data)
+    elif operation == "train":
+        from .market_training import train
+
+        train(config)
+    elif operation == "infer":
+        from .market_inference import infer
+
+        infer(config)
+    else:
+        from .production import export_onnx, package_mlflow, package_triton, to_tensorrt
+
+        actions = {
+            "export": export_onnx,
+            "package": package_mlflow,
+            "tensorrt": to_tensorrt,
+            "triton": package_triton,
+        }
+        actions[operation](config)
+
+
+if __name__ == "__main__":
+    main()

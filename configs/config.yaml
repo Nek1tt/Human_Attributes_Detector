@@ -1,0 +1,9 @@
+defaults:
+  - data: market
+  - preprocess: image
+  - model: resnet18
+  - training: default
+  - logging: mlflow
+  - inference: default
+  - production: default
+  - _self_

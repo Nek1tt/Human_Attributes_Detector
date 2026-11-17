@@ -2,13 +2,15 @@
 
 from __future__ import annotations
 
-import argparse
 import hashlib
 import json
 import os
 import re
 from datetime import UTC, datetime
 from pathlib import Path
+from types import SimpleNamespace
+
+import click
 
 PINNED_MINICPM_REPO = "openbmb/MiniCPM-o-2_6-int4"
 PINNED_MINICPM_REVISION = "f347c848dd57a5dfdf5b6e32eb257101a6a8a07f"
@@ -25,8 +27,7 @@ def _sha256(path: Path) -> str:
 
 def _python_hashes(model_dir: Path) -> dict[str, str]:
     return {
-        str(path.relative_to(model_dir)): _sha256(path)
-        for path in sorted(model_dir.rglob("*.py"))
+        str(path.relative_to(model_dir)): _sha256(path) for path in sorted(model_dir.rglob("*.py"))
     }
 
 
@@ -123,22 +124,34 @@ def download_snapshot(
     )
 
 
-def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--repo-id", default=PINNED_MINICPM_REPO)
-    parser.add_argument("--revision", default=PINNED_MINICPM_REVISION)
-    parser.add_argument("--destination", type=Path, default=Path("models/minicpm-o-2_6-int4"))
-    parser.add_argument(
+def parse_args() -> SimpleNamespace:
+    @click.command()
+    @click.option("--repo-id", default=PINNED_MINICPM_REPO)
+    @click.option("--revision", default=PINNED_MINICPM_REVISION)
+    @click.option(
+        "--destination", type=click.Path(path_type=Path), default=Path("models/minicpm-o-2_6-int4")
+    )
+    @click.option(
         "--existing-snapshot",
-        action="store_true",
+        is_flag=True,
         help="Do not download; finalize and hash an existing snapshot directory.",
     )
-    parser.add_argument(
+    @click.option(
         "--patch-resampler-list-import",
-        action="store_true",
+        is_flag=True,
         help="Apply the pinned one-line resampler.py compatibility patch before hashing.",
     )
-    args = parser.parse_args()
+    def parse(**values):
+        return SimpleNamespace(**values)
+
+    result = parse.main(standalone_mode=False)
+    if isinstance(result, int):
+        raise SystemExit(result)
+    return result
+
+
+def main() -> None:
+    args = parse_args()
     if args.existing_snapshot:
         if not args.destination.is_dir():
             raise FileNotFoundError(f"MiniCPM snapshot not found: {args.destination.resolve()}")

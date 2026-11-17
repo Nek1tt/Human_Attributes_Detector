@@ -8,7 +8,6 @@ video pipeline, the rendered MP4, and the JSONL attribute output.
 
 from __future__ import annotations
 
-import argparse
 import compileall
 import http.client
 import json
@@ -25,6 +24,9 @@ from collections.abc import Callable
 from dataclasses import asdict, dataclass
 from datetime import datetime
 from pathlib import Path
+from types import SimpleNamespace
+
+import click
 
 from silhouette_detector.attributes.labels import (
     ATTRIBUTE_KEYS,
@@ -237,9 +239,7 @@ def upload_video(port: int, api_key: str, video: Path) -> dict[str, object]:
 def download_result(port: int, api_key: str, job_id: str, destination: Path) -> None:
     connection = http.client.HTTPConnection("127.0.0.1", port, timeout=60)
     try:
-        connection.request(
-            "GET", f"/api/v1/jobs/{job_id}/result", headers={"X-API-Key": api_key}
-        )
+        connection.request("GET", f"/api/v1/jobs/{job_id}/result", headers={"X-API-Key": api_key})
         response = connection.getresponse()
         if response.status != 200:
             text = response.read().decode("utf-8", errors="replace")[:1000]
@@ -315,9 +315,7 @@ def validate_metadata(path: Path, *, require_attributes: bool) -> str:
                 raise TestFailure("person attributes must be an object")
             attributes = person["attributes"]
             if set(attributes) != set(ATTRIBUTE_KEYS):
-                raise TestFailure(
-                    f"unexpected attribute keys: {sorted(attributes)}"
-                )
+                raise TestFailure(f"unexpected attribute keys: {sorted(attributes)}")
             for key, value in attributes.items():
                 if value not in ALLOWED_ATTRIBUTE_VALUES[key]:
                     raise TestFailure(f"invalid Russian label for {key}: {value!r}")
@@ -369,58 +367,52 @@ def validate_video(path: Path) -> str:
     return f"{width}x{height}, fps={fps:.2f}, size={path.stat().st_size} bytes"
 
 
-def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(
-        description=(
-            "Run local unit, PyTorch, real-model, API, MP4, and JSONL checks for "
-            "ResNet/CPU or MiniCPM/CUDA."
-        )
-    )
-    parser.add_argument("--video", required=True, help="Path to a short video with a person")
-    parser.add_argument("--yolo", help="YOLO ONNX path; known names in models/ are auto-detected")
-    parser.add_argument(
+def parse_args() -> SimpleNamespace:
+    @click.command()
+    @click.option("--video", required=True, help="Path to a short video with a person")
+    @click.option("--yolo", help="YOLO ONNX path; known names in models/ are auto-detected")
+    @click.option(
         "--resnet", help="ResNet checkpoint path; known names in models/ are auto-detected"
     )
-    parser.add_argument(
+    @click.option(
         "--transformer",
-        help=(
-            "VisionAttrTransformer checkpoint path; known legacy names in models/ "
-            "are auto-detected"
-        ),
+        help="VisionAttrTransformer checkpoint; known legacy names are auto-detected",
     )
-    parser.add_argument(
+    @click.option(
         "--minicpm-model-dir",
         help="Verified local MiniCPM snapshot directory (required for --backend minicpm)",
     )
-    parser.add_argument(
+    @click.option(
         "--allow-unverified-model-code",
-        action="store_true",
+        is_flag=True,
         help="Allow a local MiniCPM snapshot without model-manifest.json",
     )
-    parser.add_argument("--device", default="cpu", help="cpu, cuda, or cuda:N (default: cpu)")
-    parser.add_argument(
+    @click.option("--device", default="cpu", help="cpu, cuda, or cuda:N (default: cpu)")
+    @click.option(
         "--backend",
-        choices=("resnet", "minicpm", "none"),
+        type=click.Choice(("resnet", "minicpm", "none")),
         default="resnet",
         help="API backend",
     )
-    parser.add_argument("--timeout", type=int, default=900, help="Job timeout in seconds")
-    parser.add_argument(
-        "--skip-unit", action="store_true", help="Skip compileall, pip check, and unit tests"
-    )
-    parser.add_argument(
+    @click.option("--timeout", type=int, default=900, help="Job timeout in seconds")
+    @click.option("--skip-unit", is_flag=True, help="Skip compileall, pip check, and unit tests")
+    @click.option(
         "--skip-transformer",
-        action="store_true",
+        is_flag=True,
         help="Do not test the trained MiniCPM-embedding Transformer checkpoint",
     )
-    parser.add_argument(
-        "--with-ruff", action="store_true", help="Also run Ruff (requires development extras)"
-    )
-    parser.add_argument(
+    @click.option("--with-ruff", is_flag=True, help="Also run Ruff (requires development extras)")
+    @click.option(
         "--output-dir",
         help="Explicit artifact directory; default: var/system-tests/YYYYMMDD-HHMMSS",
     )
-    return parser.parse_args()
+    def parse(**values):
+        return SimpleNamespace(**values)
+
+    result = parse.main(standalone_mode=False)
+    if isinstance(result, int):
+        raise SystemExit(result)
+    return result
 
 
 def main() -> int:
@@ -451,9 +443,7 @@ def main() -> int:
         yolo = (
             resolve_file(args.yolo, "YOLO model")
             if args.yolo
-            else find_default_model(
-                ["yolov8s_576x1024_v2.onnx", "yolo.onnx"], "YOLO model"
-            )
+            else find_default_model(["yolov8s_576x1024_v2.onnx", "yolo.onnx"], "YOLO model")
         )
         resnet = None
         if args.backend == "resnet":
@@ -493,9 +483,7 @@ def main() -> int:
             if transformer is None:
                 raise TestFailure("--transformer is required for --backend minicpm")
             if args.device == "cpu":
-                config = json.loads(
-                    (minicpm_model_dir / "config.json").read_text(encoding="utf-8")
-                )
+                config = json.loads((minicpm_model_dir / "config.json").read_text(encoding="utf-8"))
                 quantization = config.get("quantization_config", {})
                 if str(quantization.get("quant_method", "")).lower() == "gptq":
                     raise TestFailure(
@@ -532,10 +520,12 @@ def main() -> int:
         if not args.skip_unit:
             run.step(
                 "Compile Python sources",
-                lambda: "compiled"
-                if compileall.compile_dir(PROJECT_ROOT / "src", quiet=1)
-                and compileall.compile_dir(PROJECT_ROOT / "tests", quiet=1)
-                else (_ for _ in ()).throw(TestFailure("compileall reported errors")),
+                lambda: (
+                    "compiled"
+                    if compileall.compile_dir(PROJECT_ROOT / "src", quiet=1)
+                    and compileall.compile_dir(PROJECT_ROOT / "tests", quiet=1)
+                    else (_ for _ in ()).throw(TestFailure("compileall reported errors"))
+                ),
             )
             run.step(
                 "Installed dependency consistency",
@@ -557,9 +547,7 @@ def main() -> int:
                     timeout=args.timeout,
                     environment={
                         "HAD_TEST_PROFILE": args.device,
-                        "HAD_REQUIRE_CUDA_TESTS": (
-                            "1" if args.device.startswith("cuda") else None
-                        ),
+                        "HAD_REQUIRE_CUDA_TESTS": ("1" if args.device.startswith("cuda") else None),
                     },
                 ).splitlines()[-1],
             )
@@ -809,9 +797,7 @@ print(json.dumps(prediction, ensure_ascii=False))
             )
             run.step(
                 "Validate JSONL, detections, tracking, and attributes",
-                lambda: validate_metadata(
-                    metadata_path, require_attributes=args.backend != "none"
-                ),
+                lambda: validate_metadata(metadata_path, require_attributes=args.backend != "none"),
             )
 
             def final_health() -> str:

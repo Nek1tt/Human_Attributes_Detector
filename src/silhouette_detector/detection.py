@@ -57,9 +57,7 @@ class YoloOnnxDetector:
         self.input_width = int(shape[3]) if isinstance(shape[3], int) else 1024
         self.confidence = confidence
         self.iou_threshold = iou_threshold
-        self.providers = validate_onnx_session_providers(
-            device, self.session.get_providers()
-        )
+        self.providers = validate_onnx_session_providers(device, self.session.get_providers())
         self._lock = Lock()
 
     @staticmethod

@@ -30,17 +30,20 @@ jobs:
           python-version: "3.11.9"
           cache: pip
 
-      - name: Upgrade pip
-        run: python -m pip install --upgrade pip
+      - name: Install uv
+        run: python -m pip install uv
 
-      - name: Install project and test tools
-        run: pip install -e . ruff
+      - name: Install locked dependencies
+        run: uv sync --locked --extra cpu --extra train --extra dev --extra export --extra api
 
-      - name: Run Ruff
-        run: ruff check .
+      - name: Install hooks
+        run: uv run --no-sync pre-commit install
+
+      - name: Check code and documents
+        run: uv run --no-sync pre-commit run --all-files
 
       - name: Check Python syntax
-        run: python -m compileall -q src tests scripts
+        run: uv run --no-sync python -m compileall -q src tests scripts
 
       - name: Run unit tests
-        run: python -m unittest discover -s tests -v
+        run: uv run --no-sync python -m unittest discover -s tests -v

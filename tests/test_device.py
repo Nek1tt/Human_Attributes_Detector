@@ -42,9 +42,7 @@ class DeviceTests(unittest.TestCase):
             resolve_torch_device("cuda:2", FakeTorch(True, 1))
 
     def test_onnx_auto_prefers_cuda_then_cpu(self) -> None:
-        providers = select_onnx_providers(
-            "auto", ["CPUExecutionProvider", "CUDAExecutionProvider"]
-        )
+        providers = select_onnx_providers("auto", ["CPUExecutionProvider", "CUDAExecutionProvider"])
         self.assertEqual(providers, ["CUDAExecutionProvider", "CPUExecutionProvider"])
 
     def test_onnx_explicit_cuda_requires_provider(self) -> None:
@@ -59,9 +57,7 @@ class DeviceTests(unittest.TestCase):
         providers = validate_onnx_session_providers(
             "cuda", ["CUDAExecutionProvider", "CPUExecutionProvider"]
         )
-        self.assertEqual(
-            providers, ("CUDAExecutionProvider", "CPUExecutionProvider")
-        )
+        self.assertEqual(providers, ("CUDAExecutionProvider", "CPUExecutionProvider"))
 
     def test_onnx_auto_may_fall_back_to_cpu(self) -> None:
         providers = validate_onnx_session_providers("auto", ["CPUExecutionProvider"])

@@ -2,10 +2,11 @@
 
 from __future__ import annotations
 
-import argparse
 import json
 from pathlib import Path
+from types import SimpleNamespace
 
+import click
 import torch
 from torch.nn import functional as F
 from torch.utils.data import DataLoader
@@ -105,21 +106,31 @@ def train(args) -> None:
     )
 
 
+def parse_args() -> SimpleNamespace:
+    @click.command()
+    @click.argument("embeddings", type=click.Path(path_type=Path))
+    @click.argument("output", type=click.Path(path_type=Path))
+    @click.option("--device", default="auto")
+    @click.option("--epochs", type=int, default=25)
+    @click.option("--batch-size", type=int, default=16)
+    @click.option("--hidden-dim", type=int, default=768)
+    @click.option("--num-heads", type=int, default=12)
+    @click.option("--num-layers", type=int, default=6)
+    @click.option("--drop-path-rate", type=float, default=0.1)
+    @click.option("--learning-rate", type=float, default=5e-05)
+    @click.option("--validation-fraction", type=float, default=0.2)
+    @click.option("--seed", type=int, default=42)
+    def parse(**values):
+        return SimpleNamespace(**values)
+
+    result = parse.main(standalone_mode=False)
+    if isinstance(result, int):
+        raise SystemExit(result)
+    return result
+
+
 def main() -> None:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("embeddings", type=Path)
-    parser.add_argument("output", type=Path)
-    parser.add_argument("--device", default="auto")
-    parser.add_argument("--epochs", type=int, default=25)
-    parser.add_argument("--batch-size", type=int, default=16)
-    parser.add_argument("--hidden-dim", type=int, default=768)
-    parser.add_argument("--num-heads", type=int, default=12)
-    parser.add_argument("--num-layers", type=int, default=6)
-    parser.add_argument("--drop-path-rate", type=float, default=0.1)
-    parser.add_argument("--learning-rate", type=float, default=5e-5)
-    parser.add_argument("--validation-fraction", type=float, default=0.2)
-    parser.add_argument("--seed", type=int, default=42)
-    args = parser.parse_args()
+    args = parse_args()
     train(args)
 
 

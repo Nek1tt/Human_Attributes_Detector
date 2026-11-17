@@ -117,9 +117,7 @@ def draw_results(frame: np.ndarray, results: list[FrameResult]) -> np.ndarray:
         cv2.rectangle(output, (x1, y1), (x2, y2), color, 2)
         lines = [f"ID {result.track_id} | {result.confidence:.2f}"]
         known = [
-            f"{key}: {value}"
-            for key, value in result.attributes.items()
-            if value != "не определен"
+            f"{key}: {value}" for key, value in result.attributes.items() if value != "не определен"
         ]
         lines.extend(known[:5])
         top = max(18, y1 - 8 - 18 * len(lines))

@@ -7,7 +7,6 @@ the CUDA allocator between repeated inferences, so memory growth remains visible
 
 from __future__ import annotations
 
-import argparse
 import gc
 import hashlib
 import importlib.metadata
@@ -20,8 +19,10 @@ import sys
 import time
 from datetime import UTC, datetime
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
 
+import click
 from PIL import Image
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
@@ -61,14 +62,14 @@ def _package_version(distribution: str) -> str | None:
 def _positive_int(raw: str) -> int:
     value = int(raw)
     if value < 1:
-        raise argparse.ArgumentTypeError("must be at least 1")
+        raise click.BadParameter("must be at least 1")
     return value
 
 
 def _non_negative_float(raw: str) -> float:
     value = float(raw)
     if value < 0:
-        raise argparse.ArgumentTypeError("must be non-negative")
+        raise click.BadParameter("must be non-negative")
     return value
 
 
@@ -106,8 +107,7 @@ def _snapshot_metadata(model_dir: Path) -> dict[str, Any]:
             manifest = loaded_manifest
 
     code_hashes = {
-        str(path.relative_to(model_dir)): _sha256(path)
-        for path in sorted(model_dir.rglob("*.py"))
+        str(path.relative_to(model_dir)): _sha256(path) for path in sorted(model_dir.rglob("*.py"))
     }
     quantization = config.get("quantization_config")
     quant_method = quantization.get("quant_method") if isinstance(quantization, dict) else None
@@ -182,45 +182,51 @@ def _iteration_summary(iterations: list[dict[str, Any]]) -> dict[str, int | floa
     }
 
 
-def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--input", required=True, type=Path, help="One test image")
-    parser.add_argument(
+def parse_args() -> SimpleNamespace:
+    @click.command()
+    @click.option("--input", required=True, type=click.Path(path_type=Path), help="One test image")
+    @click.option(
         "--minicpm-model-dir",
         required=True,
-        type=Path,
+        type=click.Path(path_type=Path),
         help="Local MiniCPM snapshot directory containing config.json",
     )
-    parser.add_argument(
+    @click.option(
         "--transformer",
         required=True,
-        type=Path,
+        type=click.Path(path_type=Path),
         help="Trained VisionAttrTransformer checkpoint",
     )
-    parser.add_argument("--device", default="cuda:0", help="CUDA device (default: cuda:0)")
-    parser.add_argument(
+    @click.option("--device", default="cuda:0", help="CUDA device (default: cuda:0)")
+    @click.option(
         "--repeats",
         default=5,
         type=_positive_int,
         help="Repeated full inferences after the first pass (default: 5)",
     )
-    parser.add_argument(
+    @click.option(
         "--memory-growth-limit-mb",
         default=64.0,
         type=_non_negative_float,
         help="Maximum allowed live VRAM growth across repeats (default: 64 MiB)",
     )
-    parser.add_argument(
+    @click.option(
         "--allow-unverified-model-code",
-        action="store_true",
+        is_flag=True,
         help="Allow a patched snapshot without a matching model-manifest.json",
     )
-    parser.add_argument(
+    @click.option(
         "--output-dir",
-        type=Path,
+        type=click.Path(path_type=Path),
         help="Artifact directory (default: var/autogptq-baseline-<timestamp>)",
     )
-    return parser.parse_args()
+    def parse(**values):
+        return SimpleNamespace(**values)
+
+    result = parse.main(standalone_mode=False)
+    if isinstance(result, int):
+        raise SystemExit(result)
+    return result
 
 
 def main() -> int:
@@ -264,9 +270,7 @@ def main() -> int:
     try:
         report["stage"] = "input_validation"
         input_path = _resolve_existing(args.input, directory=False, label="Input image")
-        model_dir = _resolve_existing(
-            args.minicpm_model_dir, directory=True, label="MiniCPM model"
-        )
+        model_dir = _resolve_existing(args.minicpm_model_dir, directory=True, label="MiniCPM model")
         checkpoint = _resolve_existing(
             args.transformer, directory=False, label="Transformer checkpoint"
         )
@@ -361,12 +365,10 @@ def main() -> int:
         head_sizes = {
             name: int(head[-1].out_features) for name, head in backend.classifier.heads.items()
         }
-        expected_head_sizes = {
-            name: len(ATTRIBUTE_LABELS_RU[name]) for name in ATTRIBUTE_LABELS_RU
-        }
+        expected_head_sizes = {name: len(ATTRIBUTE_LABELS_RU[name]) for name in ATTRIBUTE_LABELS_RU}
         checkpoint_compatible = head_sizes == expected_head_sizes
-        device_compatible = (
-            backend.extractor.device == str(device) and classifier_device == str(device)
+        device_compatible = backend.extractor.device == str(device) and classifier_device == str(
+            device
         )
         components_loaded = (
             backend.extractor.processor is not None and backend.extractor.model is not None
@@ -425,9 +427,7 @@ def main() -> int:
                 "finite": bool(torch.isfinite(embeddings).all().item()),
             }
             extraction_calls.append(embedding_check)
-            dimension_matches = (
-                embeddings.ndim == 3 and int(embeddings.shape[-1]) == input_dim
-            )
+            dimension_matches = embeddings.ndim == 3 and int(embeddings.shape[-1]) == input_dim
             if len(extraction_calls) == 1:
                 report["checks"]["embedding_extraction"] = {
                     "passed": dimension_matches and embedding_check["finite"],
@@ -526,9 +526,7 @@ def main() -> int:
             allocated_growth <= args.memory_growth_limit_mb
             and allocated_spread <= args.memory_growth_limit_mb
         )
-        predictions_stable = all(
-            item["prediction"] == first["prediction"] for item in repeated
-        )
+        predictions_stable = all(item["prediction"] == first["prediction"] for item in repeated)
         final_identities = _backend_identities(backend)
         objects_stable = final_identities == initial_identities
         shapes_stable = all(item["shape"] == embedding_shape for item in extraction_calls)

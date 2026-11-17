@@ -1,0 +1,14 @@
+epochs: 5
+batch_size: 64
+learning_rate: 0.001
+weight_decay: 0.0001
+num_workers: 0
+threads: 4
+accelerator: auto
+devices: 1
+seed: 42
+deterministic: true
+gradient_clip_val: 1.0
+limit_train_batches: 1.0
+limit_val_batches: 1.0
+output: models/market_attributes.pt

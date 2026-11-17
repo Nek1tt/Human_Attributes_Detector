@@ -2,6 +2,9 @@
 
 Place private/large artifacts here. They are intentionally ignored by Git.
 
+`market_attributes.pt` is created by `had train` and stored in DVC.
+`had export` creates `market_attributes.onnx`. See the root README for commands.
+
 - `yolo.onnx` — object detector;
 - `resnet_attributes.pt` — legacy nine-model ResNet checkpoint;
 - `vision_attr_transformer.pt` — trained Transformer head;

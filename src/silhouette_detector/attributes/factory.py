@@ -9,6 +9,10 @@ from .base import AttributeBackend, NullBackend
 def create_attribute_backend(settings: Settings) -> AttributeBackend:
     if settings.attribute_backend == "none":
         return NullBackend()
+    if settings.attribute_backend == "market":
+        from .market import MarketBackend
+
+        return MarketBackend(settings.market_checkpoint, settings.device)
     if settings.attribute_backend == "resnet":
         from .resnet import ResNetBackend
 

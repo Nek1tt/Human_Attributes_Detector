@@ -2,7 +2,6 @@
 
 from __future__ import annotations
 
-import argparse
 import hashlib
 import importlib.metadata
 import json
@@ -13,7 +12,10 @@ import subprocess
 import sys
 from datetime import UTC, datetime
 from pathlib import Path
+from types import SimpleNamespace
 from typing import Any
+
+import click
 
 PROJECT_ROOT = Path(__file__).resolve().parents[1]
 DEFAULT_BASELINE = PROJECT_ROOT / "reproducibility" / "windows-cuda-baseline.json"
@@ -124,10 +126,7 @@ def _installed_packages() -> list[dict[str, str]]:
         name = distribution.metadata.get("Name")
         if name:
             packages[name.lower().replace("_", "-")] = distribution.version
-    return [
-        {"name": name, "version": packages[name]}
-        for name in sorted(packages)
-    ]
+    return [{"name": name, "version": packages[name]} for name in sorted(packages)]
 
 
 def _locked_packages(path: Path) -> dict[str, str]:
@@ -151,9 +150,9 @@ def _python_environment(output_dir: Path) -> dict[str, Any]:
     freeze_text = freeze.get("stdout", "")
     (output_dir / "pip-freeze.txt").write_text(freeze_text + "\n", encoding="utf-8")
 
-    portable_raw = _run(
-        [sys.executable, "-m", "pip", "freeze", "--all", "--exclude-editable"]
-    ).get("stdout", "")
+    portable_raw = _run([sys.executable, "-m", "pip", "freeze", "--all", "--exclude-editable"]).get(
+        "stdout", ""
+    )
     portable_lines = [
         line
         for line in portable_raw.splitlines()
@@ -180,9 +179,7 @@ def _python_environment(output_dir: Path) -> dict[str, Any]:
     if pytorch_index:
         lock_header.append(f"--extra-index-url {pytorch_index}")
     lock_text = "\n".join(lock_header) + "\n" + portable + "\n"
-    (output_dir / "requirements-lock-candidate.txt").write_text(
-        lock_text, encoding="utf-8"
-    )
+    (output_dir / "requirements-lock-candidate.txt").write_text(lock_text, encoding="utf-8")
 
     pip_check = _run([sys.executable, "-m", "pip", "check"])
     return {
@@ -283,9 +280,7 @@ def _minicpm_metadata(model_dir: Path | None) -> dict[str, Any] | None:
         raise FileNotFoundError(f"MiniCPM config not found: {config_path}")
     manifest_path = model_dir / "model-manifest.json"
     manifest = (
-        json.loads(manifest_path.read_text(encoding="utf-8"))
-        if manifest_path.is_file()
-        else None
+        json.loads(manifest_path.read_text(encoding="utf-8")) if manifest_path.is_file() else None
     )
     revision = None
     if model_dir.parent.name == "snapshots" and re.fullmatch(r"[0-9a-f]{40}", model_dir.name):
@@ -293,8 +288,7 @@ def _minicpm_metadata(model_dir: Path | None) -> dict[str, Any] | None:
     config = json.loads(config_path.read_text(encoding="utf-8"))
     quantization = config.get("quantization_config", {})
     python_hashes = {
-        str(path.relative_to(model_dir)): _sha256(path)
-        for path in sorted(model_dir.rglob("*.py"))
+        str(path.relative_to(model_dir)): _sha256(path) for path in sorted(model_dir.rglob("*.py"))
     }
     return {
         "path": str(model_dir),
@@ -571,18 +565,26 @@ def _baseline_checks(report: dict[str, Any], baseline: dict[str, Any]) -> list[d
     return checks
 
 
-def parse_args() -> argparse.Namespace:
-    parser = argparse.ArgumentParser(description=__doc__)
-    parser.add_argument("--output-dir", required=True, type=Path)
-    parser.add_argument("--baseline", type=Path, default=DEFAULT_BASELINE)
-    parser.add_argument("--minicpm-model-dir", type=Path)
-    parser.add_argument("--transformer-checkpoint", type=Path)
-    parser.add_argument("--resnet-checkpoint", type=Path)
-    parser.add_argument(
-        "--autogptq-source", type=Path, default=PROJECT_ROOT / ".deps" / "AutoGPTQ-minicpmo"
+def parse_args() -> SimpleNamespace:
+    @click.command()
+    @click.option("--output-dir", required=True, type=click.Path(path_type=Path))
+    @click.option("--baseline", type=click.Path(path_type=Path), default=DEFAULT_BASELINE)
+    @click.option("--minicpm-model-dir", type=click.Path(path_type=Path))
+    @click.option("--transformer-checkpoint", type=click.Path(path_type=Path))
+    @click.option("--resnet-checkpoint", type=click.Path(path_type=Path))
+    @click.option(
+        "--autogptq-source",
+        type=click.Path(path_type=Path),
+        default=PROJECT_ROOT / ".deps" / "AutoGPTQ-minicpmo",
     )
-    parser.add_argument("--strict", action="store_true")
-    return parser.parse_args()
+    @click.option("--strict", is_flag=True)
+    def parse(**values):
+        return SimpleNamespace(**values)
+
+    result = parse.main(standalone_mode=False)
+    if isinstance(result, int):
+        raise SystemExit(result)
+    return result
 
 
 def main() -> int:

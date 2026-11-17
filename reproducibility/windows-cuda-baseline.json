@@ -143,9 +143,7 @@
     "resnet_cpu_video": {
       "completed_at": "2026-08-03T01:21:58.368958+07:00",
       "device": "cpu",
-      "yolo_providers": [
-        "CPUExecutionProvider"
-      ],
+      "yolo_providers": ["CPUExecutionProvider"],
       "video_job_ms": 14094.0,
       "frames": 33,
       "detections": 66,
@@ -155,10 +153,7 @@
     "minicpm_cuda_video": {
       "completed_at": "2026-08-03T01:43:06.266148+07:00",
       "device": "cuda",
-      "yolo_providers": [
-        "CUDAExecutionProvider",
-        "CPUExecutionProvider"
-      ],
+      "yolo_providers": ["CUDAExecutionProvider", "CPUExecutionProvider"],
       "video_job_ms": 28250.0,
       "frames": 33,
       "detections": 66,

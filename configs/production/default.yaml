@@ -1,0 +1,7 @@
+onnx: models/market_attributes.onnx
+opset: 17
+mlflow_model: var/serving-model
+triton_repository: var/triton-models
+trt_engine: models/market_attributes.engine
+trtexec: trtexec
+max_batch_size: 64
