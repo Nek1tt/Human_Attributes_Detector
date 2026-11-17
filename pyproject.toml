@@ -88,6 +88,11 @@ train = [
     "matplotlib>=3.9,<4",
 ]
 export = ["onnx>=1.17,<2", "onnxruntime>=1.20,<2"]
+vision = [
+    "transformers==4.44.2",
+    "huggingface-hub==0.36.2",
+    "safetensors>=0.6,<1",
+]
 
 [project.scripts]
 had = "silhouette_detector.commands:main"
@@ -122,8 +127,13 @@ url = "https://download.pytorch.org/whl/cpu"
 explicit = true
 
 [tool.uv.sources]
-torch = [{ index = "pytorch-cpu", extra = "cpu" }]
-torchvision = [{ index = "pytorch-cpu", extra = "cpu" }]
+torch = [{ index = "pytorch-cpu", extra = "cpu" }, { index = "pytorch-cuda", extra = "gpu" }]
+torchvision = [{ index = "pytorch-cpu", extra = "cpu" }, { index = "pytorch-cuda", extra = "gpu" }]
+
+[[tool.uv.index]]
+name = "pytorch-cuda"
+url = "https://download.pytorch.org/whl/cu128"
+explicit = true
 
 [tool.pytest.ini_options]
 addopts = "-ra --strict-markers"
@@ -149,3 +159,5 @@ ignore = ["S101"]
 "scripts/check_project.py" = ["S603"]
 "scripts/request_prediction.py" = ["S310"]
 "scripts/request_triton.py" = ["S310"]
+"scripts/train_minicpm_vision.py" = ["S603"]
+"src/silhouette_detector/vision_store.py" = ["S310"]

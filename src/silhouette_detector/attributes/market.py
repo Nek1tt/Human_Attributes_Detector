@@ -35,7 +35,15 @@ class MarketBackend(AttributeBackend):
 
     def predict(self, image):
         tensor = self.transform(image.convert("RGB")).unsqueeze(0).to(self.device)
-        with self.lock, torch.inference_mode():
+        with (
+            self.lock,
+            torch.inference_mode(),
+            torch.autocast(
+                torch.device(self.device).type,
+                dtype=torch.bfloat16,
+                enabled=self.device.startswith("cuda"),
+            ),
+        ):
             attributes = decode(self.model(tensor).cpu())[0]
         bottom_type = (
             "юбка"

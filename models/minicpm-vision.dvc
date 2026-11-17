@@ -1,0 +1,6 @@
+outs:
+- md5: 2b49cc102f9f02df4aa62082bbec3f2e.dir
+  size: 835678472
+  nfiles: 4
+  hash: md5
+  path: minicpm-vision

@@ -63,9 +63,24 @@ class MarketModel(nn.Module):
         return self.classifier(self.backbone(images))
 
 
-def load_model(checkpoint: Path, device="cpu"):
+def build_model(config, pretrained=None):
+    options = dict(config)
+    architecture = options.pop("architecture", "resnet18")
+    if pretrained is not None:
+        options["pretrained"] = pretrained
+    if architecture == "minicpm_vision":
+        from .vision_model import VisionAttributeTransformer
+
+        return VisionAttributeTransformer(**options)
+    return MarketModel(**options)
+
+
+def load_model(checkpoint: Path, device="cpu", vision_directory=None):
     payload = torch.load(checkpoint, map_location="cpu", weights_only=True)
-    model = MarketModel()
+    config = dict(payload.get("model_config", {}))
+    if vision_directory is not None:
+        config["directory"] = str(vision_directory)
+    model = build_model(config, pretrained=False)
     model.load_state_dict(payload["model_state_dict"])
     return model.to(device).eval(), payload["preprocess"]
 
@@ -88,5 +103,10 @@ def predict_image(checkpoint, image, device="cpu", threshold=0.0):
     model, preprocess = load_model(Path(checkpoint), device)
     with Image.open(image) as source:
         tensor = image_transform(preprocess)(source.convert("RGB")).unsqueeze(0)
-    with torch.inference_mode():
+    with (
+        torch.inference_mode(),
+        torch.autocast(
+            torch.device(device).type, dtype=torch.bfloat16, enabled=str(device).startswith("cuda")
+        ),
+    ):
         return decode(model(tensor.to(device)).cpu(), threshold)[0]

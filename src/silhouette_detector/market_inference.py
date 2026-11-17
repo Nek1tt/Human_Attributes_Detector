@@ -17,6 +17,10 @@ def ensure_checkpoint(checkpoint):
         dvc_command("pull", pointer)
     if not checkpoint.is_file():
         raise FileNotFoundError(f"Train the model first or restore the checkpoint: {checkpoint}")
+    payload = torch.load(checkpoint, map_location="cpu", weights_only=True, mmap=True)
+    directory = payload.get("model_config", {}).get("directory")
+    if directory and not Path(directory).exists():
+        dvc_command("pull", str(directory) + ".dvc")
     return checkpoint
 
 

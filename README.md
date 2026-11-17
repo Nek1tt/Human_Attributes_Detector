@@ -58,6 +58,7 @@ Loss и accuracy записываются для train и validation, F1 — д�
 Разбор всех критериев: [docs/criteria.md](docs/criteria.md).
 Результаты проверок: [docs/checks.md](docs/checks.md).
 PDF описания: [docs/proposal.pdf](docs/proposal.pdf).
+Новая архитектура MiniCPM vision + Transformer: [docs/minicpm-vision.md](docs/minicpm-vision.md).
 
 ## Setup
 

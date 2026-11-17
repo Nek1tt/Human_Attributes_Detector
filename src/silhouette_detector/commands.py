@@ -19,6 +19,7 @@ def load_config(overrides):
     type=click.Choice(
         [
             "download",
+            "vision-download",
             "train",
             "infer",
             "export",
@@ -34,7 +35,14 @@ def main(operation, overrides):
         if hasattr(stream, "reconfigure"):
             stream.reconfigure(encoding="utf-8")
     config = load_config(overrides)
-    if operation == "download":
+    if operation == "vision-download":
+        from .market_data import dvc_command
+        from .vision_store import download_vision
+
+        directory = download_vision(config.model.directory)
+        dvc_command("add", directory)
+        dvc_command("push", str(directory) + ".dvc")
+    elif operation == "download":
         from .market_data import download_data
 
         download_data(config.data)

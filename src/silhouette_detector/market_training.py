@@ -1,12 +1,14 @@
 """Train attribute classifiers with Lightning and log the experiment to MLflow."""
 
 import csv
+import json
+import os
 import subprocess
 from pathlib import Path
 
 import lightning as lightning
 import torch
-from lightning.pytorch.callbacks import ModelCheckpoint
+from lightning.pytorch.callbacks import Callback, ModelCheckpoint
 from lightning.pytorch.loggers import CSVLogger, MLFlowLogger
 from omegaconf import OmegaConf
 from torch import nn
@@ -15,15 +17,30 @@ from torch.utils.data import DataLoader
 from torchmetrics.classification import MulticlassF1Score
 
 from .market_data import MarketDataset, dvc_command, ensure_data
-from .market_model import LABELS, MarketModel
+from .market_model import LABELS, build_model
+
+
+class EpochSummary(Callback):
+    def on_train_epoch_end(self, trainer, module):
+        values = {name: float(value) for name, value in trainer.callback_metrics.items()}
+        values["epoch"] = trainer.current_epoch + 1
+        print(json.dumps(values), flush=True)
 
 
 class AttributeTraining(lightning.LightningModule):
     def __init__(self, config):
         super().__init__()
         self.save_hyperparameters(OmegaConf.to_container(config, resolve=True))
-        self.network = MarketModel(**config.model)
+        self.network = build_model(config.model)
+        if config.training.get("initial_checkpoint"):
+            payload = torch.load(
+                config.training.initial_checkpoint, map_location="cpu", weights_only=True
+            )
+            self.network.load_state_dict(payload["model_state_dict"], strict=True)
         self.learning_rate = config.training.learning_rate
+        self.backbone_learning_rate = config.training.get(
+            "backbone_learning_rate", self.learning_rate
+        )
         self.weight_decay = config.training.weight_decay
         self.f1_scores = nn.ModuleDict(
             {
@@ -76,9 +93,19 @@ class AttributeTraining(lightning.LightningModule):
             metric.reset()
 
     def configure_optimizers(self):
+        backbone = [
+            parameter for parameter in self.network.backbone.parameters() if parameter.requires_grad
+        ]
+        head = [
+            parameter
+            for name, parameter in self.network.named_parameters()
+            if parameter.requires_grad and not name.startswith("backbone.")
+        ]
+        groups = [{"params": head, "lr": self.learning_rate}]
+        if backbone:
+            groups.append({"params": backbone, "lr": self.backbone_learning_rate})
         return torch.optim.AdamW(
-            filter(lambda parameter: parameter.requires_grad, self.network.parameters()),
-            lr=self.learning_rate,
+            groups,
             weight_decay=self.weight_decay,
         )
 
@@ -118,6 +145,7 @@ def save_plots(csv_path, output):
 
 
 def train(config):
+    os.environ.setdefault("CUBLAS_WORKSPACE_CONFIG", ":4096:8")
     torch.set_num_threads(config.training.threads)
     torch.hub.set_dir(str(Path(".cache/torch/hub").resolve()))
     lightning.seed_everything(config.training.seed, workers=True)
@@ -127,6 +155,8 @@ def train(config):
     loader_options = {
         "batch_size": config.training.batch_size,
         "num_workers": config.training.num_workers,
+        "pin_memory": config.training.accelerator == "gpu",
+        "persistent_workers": config.training.num_workers > 0,
     }
     train_loader = DataLoader(train_set, shuffle=True, **loader_options)
     validation_loader = DataLoader(validation_set, shuffle=False, **loader_options)
@@ -141,8 +171,8 @@ def train(config):
     mlflow_logger.log_hyperparams({"git_commit": git_commit, "git_dirty": str(git_dirty)})
     csv_logger = CSVLogger(config.logging.plots_dir, name="training")
     checkpoint = ModelCheckpoint(
-        dirpath="var/checkpoints",
-        filename="market-best",
+        dirpath=Path("var/checkpoints") / config.logging.run_name,
+        filename="best",
         monitor="validation_macro_f1",
         mode="max",
         save_top_k=1,
@@ -153,11 +183,12 @@ def train(config):
         accelerator=config.training.accelerator,
         devices=config.training.devices,
         deterministic=config.training.deterministic,
+        precision=config.training.get("precision", "32-true"),
         gradient_clip_val=config.training.gradient_clip_val,
         limit_train_batches=config.training.limit_train_batches,
         limit_val_batches=config.training.limit_val_batches,
         logger=[mlflow_logger, csv_logger],
-        callbacks=[checkpoint],
+        callbacks=[checkpoint, EpochSummary()],
         num_sanity_val_steps=0,
         enable_progress_bar=False,
         log_every_n_steps=1,
@@ -172,6 +203,7 @@ def train(config):
             "model_state_dict": module.network.cpu().state_dict(),
             "preprocess": OmegaConf.to_container(config.preprocess, resolve=True),
             "labels": LABELS,
+            "model_config": OmegaConf.to_container(config.model, resolve=True),
             "git_commit": git_commit,
         },
         output,
