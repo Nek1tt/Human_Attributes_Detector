@@ -88,6 +88,7 @@ def publish_best(selected, candidates):
 @click.option("--epochs", default=4, type=click.IntRange(min=1))
 @click.option("--only", default="all", type=click.Choice(["all", "resnet", "transformer"]))
 @click.option("--skip-extraction", is_flag=True)
+@click.option("--restart", is_flag=True, help="Repeat completed experiments")
 @click.option("--resnet-batch-size", default=8, type=click.IntRange(min=1))
 @click.option("--transformer-batch-size", default=32, type=click.IntRange(min=1))
 def main(
@@ -96,6 +97,7 @@ def main(
     epochs,
     only,
     skip_extraction,
+    restart,
     resnet_batch_size,
     transformer_batch_size,
 ):
@@ -124,7 +126,7 @@ def main(
             output = f"models/{name}.pt"
             directory = f"plots/{name}"
             marker = Path(directory) / "completed.json"
-            if not marker.exists():
+            if not marker.exists() or restart:
                 if shutil.disk_usage(".").free < 8 * 1024**3:
                     raise RuntimeError("Less than 8 GiB free before the next experiment")
                 run(

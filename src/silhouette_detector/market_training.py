@@ -40,6 +40,19 @@ class LocalCheckpointIO(CheckpointIO):
 
 
 class EpochSummary(Callback):
+    def on_train_batch_end(self, trainer, module, outputs, batch, batch_index):
+        if (batch_index + 1) % 100 == 0:
+            print(
+                json.dumps(
+                    {
+                        "epoch": trainer.current_epoch + 1,
+                        "batch": batch_index + 1,
+                        "train_batches": trainer.num_training_batches,
+                    }
+                ),
+                flush=True,
+            )
+
     def on_train_epoch_end(self, trainer, module):
         values = {name: float(value) for name, value in trainer.callback_metrics.items()}
         values["epoch"] = trainer.current_epoch + 1
