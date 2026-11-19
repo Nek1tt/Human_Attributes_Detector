@@ -4,8 +4,8 @@
 - Revoke the Telegram token present in the legacy Git history before running the bot.
 - Network access requires a `HAD_API_KEY` of at least 24 characters. Without a key, only loopback
   clients are accepted.
-- MiniCPM contains custom Python code. Download it once with `had-download-minicpm`, review the
-  recorded SHA/Hashes, and deploy only the local snapshot.
+- Download the MiniCPM visual encoder with `had original-download`. The downloader uses a
+  pinned revision, and the loader verifies the SHA-256 hashes of the Python modules it executes.
 - Treat checkpoints as untrusted input. Runtime loading uses `torch.load(..., weights_only=True)`.
 - Rotate a secret immediately if it appears in an issue, log, screenshot, commit, or build artifact.
 

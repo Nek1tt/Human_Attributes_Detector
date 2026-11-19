@@ -1,2 +1,0 @@
-requirements/locks/*.lock.txt text eol=lf
-reproducibility/*.json text eol=lf
