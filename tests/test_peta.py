@@ -7,19 +7,17 @@ from pathlib import Path
 import torch
 
 from silhouette_detector.attributes.labels import ATTRIBUTE_KEYS
-from silhouette_detector.market_model import build_model, decode
-from silhouette_detector.peta_data import PETA_LABELS, encode_peta
+from silhouette_detector.model import decode
+from silhouette_detector.peta_data import ORIGINAL_PETA_LABELS, PETA_LABELS, encode_peta
 
 
 class PetaTests(unittest.TestCase):
-    def test_nine_original_attributes_have_44_outputs(self):
+    def test_nine_original_attributes_have_53_outputs(self):
         self.assertEqual(tuple(PETA_LABELS), ATTRIBUTE_KEYS)
-        model = build_model({"label_schema": "peta", "pretrained": False})
-        self.assertEqual(model.classifier.out_features, 44)
-        prediction = decode(torch.zeros(1, 44), labels=model.labels)[0]
+        prediction = decode(torch.zeros(1, 53), labels=ORIGINAL_PETA_LABELS)[0]
         self.assertEqual(tuple(prediction), ATTRIBUTE_KEYS)
         with self.assertRaises(ValueError):
-            decode(torch.zeros(1, 39), labels=model.labels)
+            decode(torch.zeros(1, 39), labels=ORIGINAL_PETA_LABELS)
 
     def test_ambiguous_color_and_missing_clothing_are_ignored(self):
         encoded = dict(

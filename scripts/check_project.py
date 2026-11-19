@@ -61,7 +61,7 @@ def main(full_training):
     )
     import mlflow.pyfunc
 
-    from silhouette_detector.market_model import predict_image
+    from silhouette_detector.model import predict_image
 
     image = next(Path("data/peta/PETA dataset").rglob("*.jpg"))
     encoded = base64.b64encode(image.read_bytes()).decode("ascii")

@@ -9,7 +9,7 @@ import torch
 from PIL import Image
 
 from .device import resolve_torch_device
-from .market_model import decode, image_transform, load_model
+from .model import decode, image_transform, load_model
 
 
 class AttributeServing(mlflow.pyfunc.PythonModel):
@@ -18,8 +18,7 @@ class AttributeServing(mlflow.pyfunc.PythonModel):
         self.model, preprocess = load_model(
             context.artifacts["checkpoint"],
             device=self.device,
-            vision_directory=context.artifacts.get("vision_source")
-            or context.artifacts.get("original_visual"),
+            vision_directory=context.artifacts.get("original_visual"),
         )
         self.transform = image_transform(preprocess)
         self.original_encoder = None

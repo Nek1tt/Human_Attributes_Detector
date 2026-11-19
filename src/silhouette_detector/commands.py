@@ -19,7 +19,6 @@ def load_config(overrides):
     type=click.Choice(
         [
             "download",
-            "vision-download",
             "original-download",
             "original-extract",
             "train",
@@ -46,23 +45,16 @@ def main(operation, overrides):
         from .original_features import extract_original_features
 
         extract_original_features(config)
-    elif operation == "vision-download":
-        from .market_data import dvc_command
-        from .vision_store import download_vision
-
-        directory = download_vision(config.model.directory)
-        dvc_command("add", directory)
-        dvc_command("push", str(directory) + ".dvc")
     elif operation == "download":
-        from .market_data import download_data
+        from .peta_data import download_peta
 
-        download_data(config.data)
+        download_peta(config.data)
     elif operation == "train":
-        from .market_training import train
+        from .train import train
 
         train(config)
     elif operation == "infer":
-        from .market_inference import infer
+        from .inference import infer
 
         infer(config)
     elif operation == "evaluate":

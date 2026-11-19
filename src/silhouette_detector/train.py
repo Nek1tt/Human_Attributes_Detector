@@ -18,8 +18,8 @@ from torch.nn import functional
 from torch.utils.data import DataLoader
 from torchmetrics.classification import MulticlassF1Score
 
-from .market_data import MarketDataset, dvc_command, ensure_data
-from .market_model import LABELS, build_model
+from .model import build_model
+from .peta_data import ORIGINAL_PETA_LABELS, PetaImageDataset, dvc_command, ensure_data
 
 
 class LocalCheckpointIO(CheckpointIO):
@@ -138,24 +138,8 @@ class AttributeTraining(lightning.LightningModule):
             metric.reset()
 
     def configure_optimizers(self):
-        if hasattr(self.network, "parameter_groups"):
-            return torch.optim.AdamW(
-                self.network.parameter_groups(self.learning_rate, self.backbone_learning_rate),
-                weight_decay=self.weight_decay,
-            )
-        backbone = [
-            parameter for parameter in self.network.backbone.parameters() if parameter.requires_grad
-        ]
-        head = [
-            parameter
-            for name, parameter in self.network.named_parameters()
-            if parameter.requires_grad and not name.startswith("backbone.")
-        ]
-        groups = [{"params": head, "lr": self.learning_rate}]
-        if backbone:
-            groups.append({"params": backbone, "lr": self.backbone_learning_rate})
         return torch.optim.AdamW(
-            groups,
+            self.network.parameter_groups(self.learning_rate, self.backbone_learning_rate),
             weight_decay=self.weight_decay,
         )
 
@@ -207,13 +191,8 @@ def train(config):
         train_set = OriginalEmbeddingDataset(embedding_root, "train")
         validation_set = OriginalEmbeddingDataset(embedding_root, "validation")
     else:
-        dataset_class = MarketDataset
-        if config.model.get("architecture") == "original_resnet50":
-            from .original_features import OriginalImageDataset
-
-            dataset_class = OriginalImageDataset
-        train_set = dataset_class(root, "train", config.preprocess)
-        validation_set = dataset_class(root, "validation", config.preprocess)
+        train_set = PetaImageDataset(root, "train", config.preprocess)
+        validation_set = PetaImageDataset(root, "validation", config.preprocess)
     loader_options = {
         "batch_size": config.training.batch_size,
         "num_workers": config.training.num_workers,
@@ -242,13 +221,8 @@ def train(config):
     )
     class_weights = None
     if config.training.get("balanced_loss", False):
-        from .peta_data import ORIGINAL_PETA_LABELS, PETA_LABELS
-
-        labels = {"peta_original": ORIGINAL_PETA_LABELS, "peta": PETA_LABELS, "market": LABELS}[
-            config.model.get("label_schema", "market")
-        ]
         class_weights = []
-        for index, choices in enumerate(labels.values()):
+        for index, choices in enumerate(ORIGINAL_PETA_LABELS.values()):
             targets = torch.tensor([record["labels"][index] for record in train_set.records])
             counts = torch.bincount(targets[targets >= 0], minlength=len(choices)).float()
             weights = (counts.sum() / (len(choices) * counts.clamp_min(1))).sqrt()

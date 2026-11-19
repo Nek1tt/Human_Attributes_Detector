@@ -13,7 +13,7 @@ from unittest.mock import patch
 @unittest.skipUnless(importlib.util.find_spec("torch"), "PyTorch is not installed")
 class TrainingDataTests(unittest.TestCase):
     def test_public_download_restores_data_missing_from_an_existing_dvc_remote(self):
-        from silhouette_detector.market_data import ensure_data
+        from silhouette_detector.peta_data import ensure_data
 
         with tempfile.TemporaryDirectory() as directory:
             base = Path(directory)
@@ -32,8 +32,8 @@ class TrainingDataTests(unittest.TestCase):
                     raise subprocess.CalledProcessError(1, ["dvc", *map(str, arguments)])
 
             with (
-                patch("silhouette_detector.market_data.download_data", side_effect=download),
-                patch("silhouette_detector.market_data.dvc_command", side_effect=pull),
+                patch("silhouette_detector.peta_data.download_peta", side_effect=download),
+                patch("silhouette_detector.peta_data.dvc_command", side_effect=pull),
             ):
                 restored = ensure_data(config)
             self.assertEqual(restored, root)
@@ -41,16 +41,12 @@ class TrainingDataTests(unittest.TestCase):
                 json.loads((restored / "records.json").read_text()), [{"split": "train"}]
             )
 
-    def test_mask_uses_length_before_padding(self) -> None:
-        import torch
+    def test_hydra_overrides_nested_settings(self):
+        from silhouette_detector.commands import load_config
 
-        from silhouette_detector.training.data import collate_embeddings
-
-        short = (torch.ones(1, 2, 4), {"пол": 0}, "a")
-        long = (torch.ones(3, 2, 4), {"пол": 1}, "b")
-        embeddings, _, mask, _ = collate_embeddings([short, long])
-        self.assertEqual(embeddings.shape, (2, 3, 2, 4))
-        self.assertEqual(mask.tolist(), [[True, False, False], [True, True, True]])
+        config = load_config(["training.epochs=2", "inference.confidence_threshold=0.8"])
+        self.assertEqual(config.training.epochs, 2)
+        self.assertEqual(config.inference.confidence_threshold, 0.8)
 
 
 if __name__ == "__main__":

@@ -3,14 +3,13 @@
 import importlib.metadata
 import shutil
 import subprocess
-import tempfile
 from pathlib import Path
 
 import numpy as np
 import torch
 
-from .market_inference import ensure_checkpoint
-from .market_model import load_model
+from .inference import ensure_checkpoint
+from .model import load_model
 
 
 def input_spec(model, preprocess):
@@ -64,30 +63,23 @@ def package_mlflow(config):
     payload = torch.load(checkpoint, map_location="cpu", weights_only=True, mmap=True)
     model_config = payload.get("model_config", {})
     package_names = ["mlflow", "torch", "torchvision", "pillow", "numpy"]
-    if model_config.get("architecture") in {"minicpm_vision", "original_transformer"}:
+    if model_config.get("architecture") == "original_transformer":
         package_names.extend(["transformers", "huggingface-hub", "safetensors"])
     dependencies = [f"{name}=={importlib.metadata.version(name)}" for name in package_names]
     if importlib.metadata.version("torch").endswith("+cpu"):
         dependencies.insert(0, "--extra-index-url https://download.pytorch.org/whl/cpu")
     if "+cu128" in importlib.metadata.version("torch"):
         dependencies.insert(0, "--extra-index-url https://download.pytorch.org/whl/cu128")
-    with tempfile.TemporaryDirectory(dir="var") as temporary:
-        artifacts = {"checkpoint": str(checkpoint.resolve())}
-        if model_config.get("architecture") == "original_transformer":
-            artifacts["original_visual"] = str(Path(model_config["visual_directory"]).resolve())
-        if model_config.get("directory"):
-            source = Path(temporary) / "vision-source"
-            source.mkdir()
-            for filename in ["config.json", "modeling_navit_siglip.py"]:
-                shutil.copyfile(Path(model_config["directory"]) / filename, source / filename)
-            artifacts["vision_source"] = str(source.resolve())
-        mlflow.pyfunc.save_model(
-            path=config.production.mlflow_model,
-            python_model=AttributeServing(),
-            artifacts=artifacts,
-            code_paths=["src/silhouette_detector"],
-            pip_requirements=dependencies,
-        )
+    artifacts = {"checkpoint": str(checkpoint.resolve())}
+    if model_config.get("architecture") == "original_transformer":
+        artifacts["original_visual"] = str(Path(model_config["visual_directory"]).resolve())
+    mlflow.pyfunc.save_model(
+        path=config.production.mlflow_model,
+        python_model=AttributeServing(),
+        artifacts=artifacts,
+        code_paths=["src/silhouette_detector"],
+        pip_requirements=dependencies,
+    )
     print(f"MLflow model: {config.production.mlflow_model}")
 
 

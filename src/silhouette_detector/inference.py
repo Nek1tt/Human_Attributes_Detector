@@ -6,8 +6,8 @@ from pathlib import Path
 import torch
 from torch.utils.data import DataLoader
 
-from .market_data import MarketDataset, dvc_command, ensure_data
-from .market_model import decode, load_model, predict_image
+from .model import decode, load_model, predict_image
+from .peta_data import PetaImageDataset, dvc_command, ensure_data
 
 
 def ensure_checkpoint(checkpoint):
@@ -17,11 +17,6 @@ def ensure_checkpoint(checkpoint):
         dvc_command("pull", pointer)
     if not checkpoint.is_file():
         raise FileNotFoundError(f"Train the model first or restore the checkpoint: {checkpoint}")
-    payload = torch.load(checkpoint, map_location="cpu", weights_only=True, mmap=True)
-    model_config = payload.get("model_config", {})
-    directory = model_config.get("directory")
-    if directory and not Path(directory).exists():
-        dvc_command("pull", str(directory) + ".dvc")
     return checkpoint
 
 
@@ -51,13 +46,13 @@ def infer(config):
             ensure_embeddings(config), config.inference.split, config.inference.limit
         )
     else:
-        dataset = MarketDataset(root, config.inference.split, preprocess, config.inference.limit)
+        dataset = PetaImageDataset(root, config.inference.split, preprocess, config.inference.limit)
     loader = DataLoader(dataset, batch_size=config.inference.batch_size)
     offset = 0
     with output.open("w", encoding="utf-8") as destination, torch.inference_mode():
         for images, _ in loader:
             logits = model(images.to(config.inference.device)).cpu()
-            predictions = decode(logits, config.inference.confidence_threshold, model.labels)
+            predictions = decode(logits, config.inference.confidence_threshold, labels=model.labels)
             for prediction in predictions:
                 record = dataset.records[offset]
                 destination.write(

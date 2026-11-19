@@ -11,24 +11,8 @@ import torch
 from PIL import Image
 from torch.utils.data import Dataset
 
-from .market_data import MarketDataset, dvc_command, ensure_data
 from .original_visual import OriginalVisualEncoder, file_hash
-from .peta_data import ORIGINAL_PETA_LABELS
-
-
-def unknown_targets(records):
-    for record in records:
-        record["labels"] = [
-            target if target >= 0 else len(choices) - 1
-            for target, choices in zip(record["labels"], ORIGINAL_PETA_LABELS.values(), strict=True)
-        ]
-    return records
-
-
-class OriginalImageDataset(MarketDataset):
-    def __init__(self, root, split, preprocess, limit=None):
-        super().__init__(root, split, preprocess, limit)
-        self.records = unknown_targets(self.records)
+from .peta_data import dvc_command, ensure_data, unknown_targets
 
 
 def extract_original_features(config):

@@ -9,21 +9,8 @@ from .base import AttributeBackend, NullBackend
 def create_attribute_backend(settings: Settings) -> AttributeBackend:
     if settings.attribute_backend == "none":
         return NullBackend()
-    if settings.attribute_backend in {"market", "peta"}:
-        from .market import MarketBackend
+    if settings.attribute_backend == "peta":
+        from .peta import PetaBackend
 
-        return MarketBackend(settings.market_checkpoint, settings.device)
-    if settings.attribute_backend == "resnet":
-        from .resnet import ResNetBackend
-
-        return ResNetBackend(settings.resnet_checkpoint, settings.device)
-    if settings.attribute_backend == "minicpm":
-        from .minicpm import MiniCPMTransformerBackend
-
-        return MiniCPMTransformerBackend(
-            settings.minicpm_model_dir,
-            settings.transformer_checkpoint,
-            settings.device,
-            allow_unverified_model_code=settings.allow_unverified_model_code,
-        )
+        return PetaBackend(settings.attribute_checkpoint, settings.device)
     raise ValueError(f"Unsupported attribute backend: {settings.attribute_backend}")

@@ -1,9 +1,17 @@
 """Convert the original PETA annotations to nine categorical attributes."""
 
+import hashlib
 import json
 import random
+import subprocess
+import urllib.request
 import zipfile
 from pathlib import Path
+
+from PIL import Image
+from torch.utils.data import Dataset
+
+from .model import image_transform
 
 COLORS = [
     "black",
@@ -135,8 +143,6 @@ def prepare_peta_records(root, config):
 
 
 def download_peta(config):
-    from .market_data import download_file, dvc_command
-
     root = Path(config.root)
     root.mkdir(parents=True, exist_ok=True)
     archive_path = Path("var/downloads/peta.zip")
@@ -161,3 +167,68 @@ def download_peta(config):
     dvc_command("add", root)
     dvc_command("push", str(root) + ".dvc")
     return root
+
+
+def download_file(url, destination, checksum=None):
+    destination = Path(destination)
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    if not destination.exists():
+        temporary = destination.with_suffix(".part")
+        with urllib.request.urlopen(url, timeout=120) as response, temporary.open("wb") as output:
+            while chunk := response.read(1024 * 1024):
+                output.write(chunk)
+        temporary.replace(destination)
+    if checksum and hashlib.sha256(destination.read_bytes()).hexdigest() != checksum:
+        raise ValueError(f"Checksum mismatch: {destination}; remove the file and retry")
+
+
+def dvc_command(*arguments):
+    import sys
+
+    subprocess.run([sys.executable, "-m", "dvc", *map(str, arguments)], check=True)
+
+
+def ensure_data(config):
+    root = Path(config.root)
+    pointer = Path(str(root) + ".dvc")
+    if not pointer.exists() or not Path(config.remote).exists():
+        download_peta(config)
+    try:
+        dvc_command("pull", pointer)
+    except subprocess.CalledProcessError:
+        download_peta(config)
+        dvc_command("pull", pointer)
+    return root
+
+
+def unknown_targets(records):
+    for record in records:
+        record["labels"] = [
+            target if target >= 0 else len(choices) - 1
+            for target, choices in zip(record["labels"], ORIGINAL_PETA_LABELS.values(), strict=True)
+        ]
+    return records
+
+
+class PetaImageDataset(Dataset):
+    def __init__(self, root, split, preprocess, limit=None):
+        self.root = Path(root)
+        records = json.loads((self.root / "records.json").read_text(encoding="utf-8"))
+        self.records = [record for record in records if record["split"] == split]
+        if limit is not None:
+            self.records = self.records[:limit]
+        self.records = unknown_targets(self.records)
+        if not self.records:
+            raise ValueError(f"No records in split {split}")
+        self.transform = image_transform(preprocess, training=split == "train")
+
+    def __len__(self):
+        return len(self.records)
+
+    def __getitem__(self, index):
+        import torch
+
+        record = self.records[index]
+        with Image.open(self.root / record["image"]) as image:
+            tensor = self.transform(image.convert("RGB"))
+        return tensor, torch.tensor(record["labels"], dtype=torch.long)

@@ -25,7 +25,7 @@ from silhouette_detector.settings import Settings
 @click.option("--device", default="cpu")
 @click.option("--output", default="var/peta-video-check", type=click.Path(path_type=Path))
 def main(video, yolo, checkpoint, device, output):
-    settings = Settings(attribute_backend="peta", market_checkpoint=checkpoint, device=device)
+    settings = Settings(attribute_backend="peta", attribute_checkpoint=checkpoint, device=device)
     settings.validate()
     backend = create_attribute_backend(settings)
     if tuple(backend.model.labels) != tuple(PETA_LABELS):

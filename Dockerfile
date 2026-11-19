@@ -2,6 +2,7 @@ FROM python:3.11.9-slim-bookworm@sha256:8fb099199b9f2d70342674bd9dbccd3ed03a258f
 
 ENV PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1 \
+    HAD_ROOT=/app \
     HAD_DATA_DIR=/app/var \
     HAD_DEVICE=cpu
 

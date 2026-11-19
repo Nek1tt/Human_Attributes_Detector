@@ -7,7 +7,7 @@ from pathlib import Path
 import click
 from PIL import Image
 
-from silhouette_detector.market_model import decode, image_transform, load_model
+from silhouette_detector.model import decode, image_transform, load_model
 
 
 @click.command()

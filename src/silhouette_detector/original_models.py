@@ -6,8 +6,7 @@ import torch
 from torch import nn
 from torchvision import models
 
-from .attributes.labels import ATTRIBUTE_LABELS_RU, RU_TO_API
-from .attributes.market import COLORS_RU
+from .attributes.labels import ATTRIBUTE_LABELS_RU, COLORS_RU, RU_TO_API
 from .attributes.resnet import ResNetEnsemble
 from .attributes.transformer import VisionAttrTransformer
 

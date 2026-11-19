@@ -11,8 +11,8 @@ import click
 import torch
 import yaml
 
-from silhouette_detector.market_data import dvc_command
 from silhouette_detector.original_visual import file_hash
+from silhouette_detector.peta_data import dvc_command
 
 
 def run(operation, *overrides):

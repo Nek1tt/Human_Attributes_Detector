@@ -22,7 +22,7 @@ def main(image, url, check_with, device):
     with urllib.request.urlopen(request, timeout=60) as response:
         result = json.load(response)
     if check_with:
-        from silhouette_detector.market_model import predict_image
+        from silhouette_detector.model import predict_image
 
         expected = predict_image(check_with, image, device=device)
         if result["predictions"] != [expected]:

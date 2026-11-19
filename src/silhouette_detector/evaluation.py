@@ -6,9 +6,9 @@ from pathlib import Path
 import torch
 from torch.utils.data import DataLoader
 
-from .market_data import MarketDataset, ensure_data
-from .market_inference import ensure_checkpoint
-from .market_model import load_model
+from .inference import ensure_checkpoint
+from .model import load_model
+from .peta_data import PetaImageDataset, ensure_data
 
 
 def evaluate(config):
@@ -23,12 +23,7 @@ def evaluate(config):
             ensure_embeddings(config), config.inference.split, config.inference.limit
         )
     else:
-        dataset_class = MarketDataset
-        if getattr(model, "architecture", None) == "original_resnet50":
-            from .original_features import OriginalImageDataset
-
-            dataset_class = OriginalImageDataset
-        dataset = dataset_class(root, config.inference.split, preprocess, config.inference.limit)
+        dataset = PetaImageDataset(root, config.inference.split, preprocess, config.inference.limit)
     loader = DataLoader(dataset, batch_size=config.inference.batch_size)
     matrices = {
         name: torch.zeros(len(labels), len(labels), dtype=torch.int64)

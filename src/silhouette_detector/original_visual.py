@@ -3,6 +3,8 @@
 import hashlib
 import importlib.util
 import json
+import os
+import re
 import shutil
 import struct
 import sys
@@ -11,8 +13,8 @@ from pathlib import Path
 
 import torch
 
-from .model_store import PINNED_MINICPM_REPO, PINNED_MINICPM_REVISION, _patch_resampler_typing_list
-from .vision_store import range_request
+PINNED_MINICPM_REPO = "openbmb/MiniCPM-o-2_6-int4"
+PINNED_MINICPM_REVISION = "f347c848dd57a5dfdf5b6e32eb257101a6a8a07f"
 
 SOURCE_HASHES = {
     "config.json": "6b126bd590987009358195a6c9658b8876099b6f3c214cb5fd0e8379584443d6",
@@ -23,6 +25,38 @@ SOURCE_HASHES = {
     ),
     "modeling_minicpmo.py": "706c968bc8f8d43652c555c7088b3869a35b4f973491227ed1481a5896160783",
 }
+
+
+def _patch_resampler_typing_list(model_dir: Path) -> bool:
+    """Apply the one-line remote-code fix without modifying an HF cache blob in place."""
+
+    resampler = model_dir / "resampler.py"
+    if not resampler.is_file():
+        raise FileNotFoundError(f"MiniCPM resampler.py not found: {resampler}")
+    text = resampler.read_text(encoding="utf-8")
+    if re.search(r"(?m)^from typing import .*\bList\b", text):
+        return False
+    old_import = "from typing import Optional"
+    if old_import not in text:
+        raise RuntimeError(
+            "Could not apply the MiniCPM resampler patch: expected typing import is absent"
+        )
+    patched = text.replace(old_import, "from typing import List, Optional", 1)
+    temporary = resampler.with_name(f".{resampler.name}.patched.tmp")
+    temporary.write_text(patched, encoding="utf-8", newline="")
+    os.replace(temporary, resampler)
+    return True
+
+
+def range_request(url, start, end):
+    request = urllib.request.Request(
+        url + f"?offset={start}", headers={"Range": f"bytes={start}-{end}"}
+    )
+    response = urllib.request.urlopen(request, timeout=120)
+    if response.status != 206:
+        response.close()
+        raise RuntimeError("The model server did not support HTTP Range")
+    return response
 
 
 def file_hash(path):

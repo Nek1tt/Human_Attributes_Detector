@@ -1,4 +1,3 @@
-schema: peta
 root: data/peta
 remote: .dvc-storage
 validation_fraction: 0.2

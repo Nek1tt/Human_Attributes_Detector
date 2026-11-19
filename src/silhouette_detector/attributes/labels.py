@@ -92,3 +92,19 @@ ATTRIBUTE_LABELS_RU = {
 
 ATTRIBUTE_SIZES_RU = {key: len(labels) for key, labels in ATTRIBUTE_LABELS_RU.items()}
 UNKNOWN_ATTRIBUTES = {key: "не определен" for key in ATTRIBUTE_KEYS}
+
+
+COLORS_RU = {
+    "black": "черный",
+    "white": "белый",
+    "pink": "розовый",
+    "purple": "фиолетовый",
+    "yellow": "желтый",
+    "gray": "серый",
+    "grey": "серый",
+    "orange": "оранжевый",
+    "blue": "синий",
+    "green": "зеленый",
+    "brown": "коричневый",
+    "red": "красный",
+}

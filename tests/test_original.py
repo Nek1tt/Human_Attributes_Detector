@@ -13,9 +13,8 @@ from torchmetrics.classification import MulticlassF1Score
 from silhouette_detector.attributes.labels import ATTRIBUTE_LABELS_RU, RU_TO_API
 from silhouette_detector.attributes.resnet import ResNetEnsemble
 from silhouette_detector.attributes.transformer import VisionAttrTransformer
-from silhouette_detector.original_features import unknown_targets
 from silhouette_detector.original_models import OriginalClassifier, transfer_common_classes
-from silhouette_detector.peta_data import ORIGINAL_PETA_LABELS
+from silhouette_detector.peta_data import ORIGINAL_PETA_LABELS, unknown_targets
 
 
 class OriginalArchitectureTests(unittest.TestCase):

@@ -39,20 +39,10 @@ class Settings:
 
     root: Path = field(default_factory=_project_root)
     detector_model: Path = field(default_factory=lambda: _project_root() / "models/yolo.onnx")
-    attribute_backend: str = "resnet"
-    market_checkpoint: Path = field(
-        default_factory=lambda: _project_root() / "models/market_attributes.pt"
+    attribute_backend: str = "peta"
+    attribute_checkpoint: Path = field(
+        default_factory=lambda: _project_root() / "models/original_resnet_peta.pt"
     )
-    resnet_checkpoint: Path = field(
-        default_factory=lambda: _project_root() / "models/resnet_attributes.pt"
-    )
-    transformer_checkpoint: Path = field(
-        default_factory=lambda: _project_root() / "models/vision_attr_transformer.pt"
-    )
-    minicpm_model_dir: Path = field(
-        default_factory=lambda: _project_root() / "models/minicpm-o-2_6"
-    )
-    allow_unverified_model_code: bool = False
     device: str = "auto"
     target_fps: float = 10.0
     min_track_frames: int = 3
@@ -77,7 +67,7 @@ class Settings:
     @classmethod
     def from_env(cls) -> Settings:
         root = Path(os.getenv("HAD_ROOT", str(_project_root()))).expanduser().resolve()
-        backend = os.getenv("HAD_ATTRIBUTE_BACKEND", "resnet").strip().lower()
+        backend = os.getenv("HAD_ATTRIBUTE_BACKEND", "peta").strip().lower()
 
         def path_value(name: str, relative_default: str) -> Path:
             raw = os.getenv(name)
@@ -93,24 +83,9 @@ class Settings:
             root=root,
             detector_model=path_value("HAD_DETECTOR_MODEL", "models/yolo.onnx"),
             attribute_backend=backend,
-            market_checkpoint=path_value(
-                (
-                    "HAD_ATTRIBUTE_CHECKPOINT"
-                    if os.getenv("HAD_ATTRIBUTE_CHECKPOINT")
-                    else "HAD_MARKET_CHECKPOINT"
-                ),
-                (
-                    "models/original_resnet_peta.pt"
-                    if backend == "peta"
-                    else "models/market_attributes.pt"
-                ),
+            attribute_checkpoint=path_value(
+                "HAD_ATTRIBUTE_CHECKPOINT", "models/original_resnet_peta.pt"
             ),
-            resnet_checkpoint=path_value("HAD_RESNET_CHECKPOINT", "models/resnet_attributes.pt"),
-            transformer_checkpoint=path_value(
-                "HAD_TRANSFORMER_CHECKPOINT", "models/vision_attr_transformer.pt"
-            ),
-            minicpm_model_dir=path_value("HAD_MINICPM_MODEL_DIR", "models/minicpm-o-2_6"),
-            allow_unverified_model_code=_env_bool("HAD_ALLOW_UNVERIFIED_MODEL_CODE", False),
             device=os.getenv("HAD_DEVICE", "auto").strip().lower(),
             target_fps=float(os.getenv("HAD_TARGET_FPS", "10")),
             min_track_frames=_env_int("HAD_MIN_TRACK_FRAMES", 3, minimum=1),
@@ -128,8 +103,8 @@ class Settings:
         return settings
 
     def validate(self) -> None:
-        if self.attribute_backend not in {"resnet", "minicpm", "market", "peta", "none"}:
-            raise ValueError("HAD_ATTRIBUTE_BACKEND must be resnet, minicpm, market, peta, or none")
+        if self.attribute_backend not in {"peta", "none"}:
+            raise ValueError("HAD_ATTRIBUTE_BACKEND must be peta or none")
         if self.device not in {"auto", "cpu", "cuda"} and not self.device.startswith("cuda:"):
             raise ValueError("HAD_DEVICE must be auto, cpu, cuda, or cuda:<index>")
         if self.target_fps <= 0:
