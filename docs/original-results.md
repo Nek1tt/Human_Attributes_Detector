@@ -41,39 +41,17 @@ standard — обычная CrossEntropy. balanced — веса классов �
 | Рюкзак        |          0.8965 |          0.8197 |               0.8865 |               0.8105 |
 | Сумка         |          0.6591 |          0.6069 |               0.7673 |               0.7279 |
 
-Macro F1 — среднее F1 по классам атрибута, затем среднее по девяти атрибутам. Классы без примеров и предсказаний исключаются. Precision, recall, F1, support и confusion matrix каждого класса сохранены в `plots/original-resnet-test.json` и `plots/original-transformer-test.json`.
+Macro F1 — среднее F1 по классам атрибута, затем среднее по девяти атрибутам. Классы без примеров и предсказаний исключаются.
 
-## Сохранённые файлы
+## Графики и полные результаты
 
-Каждый каталог `plots/original-*/training/version_0/` содержит CSV, конфигурацию, Git commit и три графика: loss, accuracy, macro F1. Лучшие веса сохранены в DVC.
+Графики показывают обучение двух вариантов standard, выбранных по validation accuracy.
+В JSON для каждого класса приведены precision, recall, F1, support и матрица ошибок.
 
-MLflow runs:
-
-- `original-resnet-standard`: `bfff0ec5dda84ff6b697f18e9fe4afbe`.
-- `original-resnet-balanced`: `177c12cca8fa4a35aa2cfeba19bb7a9e`.
-- `original-transformer-standard`: `5a10380388cd486ebe05cacf55b63560`.
-- `original-transformer-balanced`: `39e1f3f884154f37ac0eded87223b690`.
-- `original-transformer-refined`: `3eb212f213604fa6bb81d858e7d59ba1`.
-
-## Старый датасет
-
-Старый датасет утерян. Сохранены исходные веса и [присланный отчёт](old-dataset-metrics.txt). На скриншоте ResNet указано `score=0.7817`; средняя accuracy Transformer из округлённых отчётов — около 0.8101. Старые и новые значения получены на разных данных и классах.
-
-## Проверки
-
-- `pre-commit run -a`: успешно.
-- GPU Setup через `uv sync --locked` и экспорт из этого окружения: успешно.
-- CPU: 62 модульных теста, 59 выполнены, 3 проверки CUDA пропущены.
-- Пять отдельных проверок реальных моделей на CPU/CUDA: успешно.
-- MiniCPM: исходная функция и загрузчик дают побитно одинаковые эмбеддинги на двух кропах.
-- `scripts/check_project.py`: короткое обучение, DVC, infer, ONNX и MLflow-пакет работают.
-- Обе итоговые модели экспортированы в ONNX. Выходы совпадают с PyTorch для batch 1 и 2.
-- MLflow Serving: HTTP-предсказание MiniCPM + Transformer совпало с прямым вызовом на CUDA.
-- Каждая модель обработала исходное видео: 33 кадра, 66 записей людей, девять атрибутов, MP4 читается.
-- Хеши итоговых весов совпали в рабочей папке, кеше DVC и local remote. Старые файлы автора не изменились.
-
-TensorRT и Triton не запускались: необходимое ПО не установлено.
-Команды для них находятся в README и `had`.
+| Модель      | Loss                                          | Accuracy                                              | Macro F1                                              | Отчёт на test                                  |
+| ----------- | --------------------------------------------- | ----------------------------------------------------- | ----------------------------------------------------- | ---------------------------------------------- |
+| ResNet50    | [Loss](../plots/results/resnet/loss.png)      | [Accuracy](../plots/results/resnet/accuracy.png)      | [Macro F1](../plots/results/resnet/macro_f1.png)      | [JSON](../plots/results/resnet/test.json)      |
+| Transformer | [Loss](../plots/results/transformer/loss.png) | [Accuracy](../plots/results/transformer/accuracy.png) | [Macro F1](../plots/results/transformer/macro_f1.png) | [JSON](../plots/results/transformer/test.json) |
 
 ## Время и место
 
@@ -81,4 +59,4 @@ TensorRT и Triton не запускались: необходимое ПО не
 
 Замер `scripts/estimate_training.py`: ResNet — 0.500 с на обучающий batch из 8 изображений, Transformer — 0.088 с на batch из 32. Одна эпоха занимает примерно 12.9 минуты и 33 секунды соответственно.
 
-Визуальные веса MiniCPM занимают 0.91 ГиБ, эмбеддинги — 7.9 ГиБ. В этой рабочей папке файл эмбеддингов связан с кешем DVC жёсткой ссылкой NTFS; вместе с local remote это около 16 ГиБ. При обычном копировании DVC нужно около 24 ГиБ. Замеры сохранены в `plots/original-resources.json`, проверки — в `plots/original-verification.json`.
+Визуальные веса MiniCPM занимают 0.91 ГиБ, эмбеддинги — 7.9 ГиБ.

@@ -1,5 +1,0 @@
-outs:
-- md5: f80dd51c802d38ebaddf7681de4e6c51
-  size: 1678892602
-  hash: md5
-  path: peta_vision_head.pt

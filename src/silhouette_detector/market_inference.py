@@ -19,14 +19,13 @@ def ensure_checkpoint(checkpoint):
         raise FileNotFoundError(f"Train the model first or restore the checkpoint: {checkpoint}")
     payload = torch.load(checkpoint, map_location="cpu", weights_only=True, mmap=True)
     model_config = payload.get("model_config", {})
-    directory = model_config.get("directory") or model_config.get("visual_directory")
+    directory = model_config.get("directory")
     if directory and not Path(directory).exists():
         dvc_command("pull", str(directory) + ".dvc")
     return checkpoint
 
 
 def infer(config):
-    root = ensure_data(config.data)
     checkpoint = ensure_checkpoint(config.inference.checkpoint)
     output = Path(config.inference.output)
     output.parent.mkdir(parents=True, exist_ok=True)
@@ -43,6 +42,7 @@ def infer(config):
         )
         print(output)
         return
+    root = ensure_data(config.data)
     model, preprocess = load_model(checkpoint, config.inference.device)
     if getattr(model, "architecture", None) == "original_transformer":
         from .original_features import OriginalEmbeddingDataset, ensure_embeddings

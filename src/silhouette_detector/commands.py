@@ -39,12 +39,9 @@ def main(operation, overrides):
             stream.reconfigure(encoding="utf-8")
     config = load_config(overrides)
     if operation == "original-download":
-        from .market_data import dvc_command
         from .original_visual import download_original_visual
 
-        directory = download_original_visual(config.embeddings.visual_directory)
-        dvc_command("add", directory)
-        dvc_command("push", str(directory) + ".dvc")
+        download_original_visual(config.embeddings.visual_directory)
     elif operation == "original-extract":
         from .original_features import extract_original_features
 

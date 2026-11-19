@@ -1,5 +1,0 @@
-outs:
-- md5: b77b4cc3543212bb23a9f5fb1b4359dd
-  size: 1678888837
-  hash: md5
-  path: minicpm_vision_head.pt

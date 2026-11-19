@@ -116,6 +116,10 @@ class OriginalVisualEncoder(torch.nn.Module):
         from safetensors.torch import load_file
 
         directory = Path(directory)
+        if not (directory / "visual.safetensors").is_file():
+            raise FileNotFoundError(
+                f"Missing MiniCPM visual weights in {directory}. Run 'had original-download'."
+            )
         if file_hash(directory / "config.json") != SOURCE_HASHES["config.json"]:
             raise ValueError("Original MiniCPM config hash mismatch")
         self.config = json.loads((directory / "config.json").read_text())

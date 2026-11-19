@@ -52,10 +52,11 @@ ID из разметки делятся внутри поддатасетов с
 Противоречивые и неуказанные категориальные метки относятся к этому классу.
 Вычисление классов описано в `peta_data.py` и `original_features.py`.
 
-Описание: [proposal.md](docs/proposal.md), [PDF](docs/proposal.pdf).
-Разбор критериев: [criteria.md](docs/criteria.md).
-Обучение и эксперименты: [original-training.md](docs/original-training.md).
-Результаты: [original-results.md](docs/original-results.md).
+На тестовой части PETA ансамбль ResNet50 получил accuracy **0.7640** и macro F1 **0.5668**.
+У MiniCPM + Transformer эти показатели составили **0.7894** и **0.6093**.
+В отчёте приведены [метрики по каждому атрибуту и графики обучения](docs/original-results.md).
+Для курса доступны [описание проекта в PDF](docs/proposal.pdf), [исходный текст](docs/proposal.md)
+и [условия экспериментов](docs/original-training.md).
 
 ## Setup
 
@@ -63,9 +64,8 @@ ID из разметки делятся внутри поддатасетов с
 Все команды выполняются из корня репозитория.
 
 ```bash
-git clone --recurse-submodules https://github.com/Nek1tt/Human_Attributes_Detector.git
+git clone --branch detector-remaster --recurse-submodules https://github.com/Nek1tt/Human_Attributes_Detector.git
 cd Human_Attributes_Detector
-git switch detector-remaster
 python -m pip install uv
 uv sync --locked --extra gpu --extra train --extra dev --extra vision --extra api --extra export
 uv run --no-sync pre-commit install
@@ -76,6 +76,35 @@ uv run --no-sync pre-commit run -a
 достаточно `uv sync --locked --extra cpu --extra train --extra dev --extra export --extra api`.
 Версии зависимостей закреплены в `uv.lock`.
 
+## Готовые модели
+
+В `models/` лежат два DVC-указателя на обученные классификаторы. Для запуска готовых
+весов на новом компьютере понадобится копия каталога `.dvc-storage/` с объектами этих
+двух моделей в корне проекта. Восстановить файлы можно одной командой:
+
+```bash
+uv run --no-sync dvc pull models/original_resnet_peta.pt.dvc models/original_transformer_peta.pt.dvc
+```
+
+Чтобы подготовить для преподавателя хранилище только с этими весами, на машине
+с обученными моделями выполните команды ниже. Передайте каталог `dist/course-weights`
+и при получении поместите его в корень клона под именем `.dvc-storage`.
+
+```bash
+uv run --no-sync dvc remote add --local -f course dist/course-weights
+uv run --no-sync dvc push -r course models/original_resnet_peta.pt.dvc models/original_transformer_peta.pt.dvc
+```
+
+ResNet50 после этого готов к предсказанию на кропах. Для Transformer отдельно
+загрузите визуальный энкодер MiniCPM из закреплённой ревизии Hugging Face
+в `models/original-minicpm-visual/` (около 0.91 ГиБ):
+
+```bash
+uv run --no-sync had original-download
+```
+
+Если DVC-хранилище недоступно, классификаторы можно обучить на PETA по инструкции ниже.
+
 ## Train
 
 В отдельном терминале запустить MLflow:
@@ -84,10 +113,15 @@ uv run --no-sync pre-commit run -a
 uv run --no-sync mlflow server --host 127.0.0.1 --port 8080 --workers 1 --backend-store-uri sqlite:///var/mlflow.db --default-artifact-root ./var/mlartifacts
 ```
 
-Подготовить данные и исходные эмбеддинги:
+Скачать PETA для обучения:
 
 ```bash
 uv run --no-sync had download
+```
+
+Для обучения Transformer дополнительно подготовить эмбеддинги:
+
+```bash
 uv run --no-sync had original-download
 uv run --no-sync had original-extract
 ```
@@ -98,11 +132,9 @@ uv run --no-sync had original-extract
 uv run --no-sync python scripts/train_original.py --skip-extraction
 ```
 
-Если сохранились прежние веса, их можно использовать как начальные:
-
-```powershell
-uv run --no-sync python scripts/train_original.py --skip-extraction --resnet-weights "C:/Human_Attributes_Detector/models/resnet_ens_11.19_e60_s0.782.pt" --transformer-weights "C:/Human_Attributes_Detector/models/MiniCPM-o 2.6int4 weights.pt"
-```
+Для воспроизведения опубликованных метрик нужны прежние веса автора.
+Скрипт принимает пути к ним через `--resnet-weights` и `--transformer-weights`.
+Без них обучение стартует с ImageNet-весов ResNet50 и случайной инициализации Transformer.
 
 По умолчанию выполняется до четырёх эпох на эксперимент. Меняются learning rate
 и взвешивание ошибки. Сохраняется лучший checkpoint по validation accuracy.
@@ -126,10 +158,7 @@ uv run --no-sync had train model=original_transformer training.batch_size=32
 Ошибка — сумма CrossEntropy по девяти атрибутам, оптимизатор AdamW.
 [Hydra](https://hydra.cc/docs/intro/) управляет данными, обработкой, моделью и обучением.
 
-Данные, исходные визуальные веса, эмбеддинги и checkpoint хранятся через DVC.
-Local remote — `.dvc-storage`. На новом компьютере датасет и визуальные веса
-скачиваются из закреплённых открытых источников. Готовые веса передаются
-с DVC-хранилищем или получаются повторным обучением.
+Данные, эмбеддинги и обученные классификаторы версионируются через DVC.
 
 ## Production preparation
 
@@ -203,11 +232,12 @@ uv run --no-sync had evaluate model=original_transformer inference.device=cuda i
 ```powershell
 $env:HAD_ATTRIBUTE_BACKEND = "peta"
 $env:HAD_ATTRIBUTE_CHECKPOINT = "models/original_transformer_peta.pt"
-$env:HAD_DETECTOR_MODEL = "C:/Human_Attributes_Detector/models/yolov8s_576x1024_v2.onnx"
+$env:HAD_DETECTOR_MODEL = "models/yolo.onnx"
 $env:HAD_DEVICE = "cuda"
 uv run --no-sync had-api
 ```
 
+Для видео отдельно положите ONNX-веса детектора людей по пути `HAD_DETECTOR_MODEL`.
 Для ResNet укажите `models/original_resnet_peta.pt`, устройство CPU или CUDA.
 API возвращает девять атрибутов на русском. HTTP-запросы описаны в [video.md](docs/video.md).
 
@@ -227,6 +257,3 @@ uv run --no-sync python scripts/check_project.py
 ```bash
 uv run --no-sync python scripts/check_peta_video.py --video person.mp4 --yolo models/yolo.onnx --checkpoint models/original_transformer_peta.pt --device cuda
 ```
-
-Старый датасет утерян. Его веса и backends сохранены.
-Предыдущие компактные модели описаны в [архиве эксперимента](docs/peta-results.md).

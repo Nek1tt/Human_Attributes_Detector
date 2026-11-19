@@ -1,8 +1,0 @@
-{
-  "name": "original-resnet-balanced",
-  "family": "resnet",
-  "checkpoint": null,
-  "validation_accuracy": 0.761284589767456,
-  "validation_macro_f1": 0.5574243664741516,
-  "epoch": 4
-}

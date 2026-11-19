@@ -34,8 +34,9 @@ videos/
 *.avi
 *.webm
 models/*
-!models/README.md
 !models/*.dvc
+/plots/*
+!/plots/results/
 /data/market/
 /data/peta_embeddings/
 /.dvc/cache/

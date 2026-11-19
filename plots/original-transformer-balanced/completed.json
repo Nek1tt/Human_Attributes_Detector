@@ -1,8 +1,0 @@
-{
-  "name": "original-transformer-balanced",
-  "family": "transformer",
-  "checkpoint": null,
-  "validation_accuracy": 0.7854868769645691,
-  "validation_macro_f1": 0.6232432126998901,
-  "epoch": 4
-}

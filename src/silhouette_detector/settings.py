@@ -100,7 +100,7 @@ class Settings:
                     else "HAD_MARKET_CHECKPOINT"
                 ),
                 (
-                    "models/peta_attributes.pt"
+                    "models/original_resnet_peta.pt"
                     if backend == "peta"
                     else "models/market_attributes.pt"
                 ),

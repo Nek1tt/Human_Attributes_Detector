@@ -1,5 +1,0 @@
-outs:
-- md5: d4e98ab2640914c01bc99397836167c6
-  size: 199409739
-  hash: md5
-  path: original_transformer_init.pt

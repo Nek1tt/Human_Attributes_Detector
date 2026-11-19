@@ -1,2 +1,0 @@
-git_commit: 06923d1afcb64e18b5e6e370919abca79b7e1d7f
-git_dirty: True

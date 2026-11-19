@@ -1,8 +1,0 @@
-{
-  "name": "original-transformer-refined",
-  "family": "transformer",
-  "checkpoint": null,
-  "validation_accuracy": 0.7975874543190002,
-  "validation_macro_f1": 0.6239780783653259,
-  "epoch": 1
-}
