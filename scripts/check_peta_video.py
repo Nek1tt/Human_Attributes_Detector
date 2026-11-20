@@ -33,6 +33,8 @@ def main(video, yolo, checkpoint, device, output):
     device = resolve_torch_device(device)
     cuda = device.startswith("cuda")
     if cuda:
+        # The allocator must exist before resetting its counters in a fresh process.
+        torch.cuda.init()
         torch.cuda.reset_peak_memory_stats(device)
     backend = create_attribute_backend(settings)
     if tuple(backend.model.labels) != tuple(PETA_LABELS):

@@ -1,0 +1,12 @@
+{
+  "video": "vtest.avi",
+  "checkpoint": "original_transformer_peta.pt",
+  "classifier_device": "cuda:0",
+  "gpu": "NVIDIA GeForce RTX 4060 Ti",
+  "detector_device": "cpu",
+  "target_fps": 5,
+  "processed_frames": 398,
+  "person_records": 2355,
+  "processing_seconds": 145.9079356000002,
+  "peak_torch_allocated_mib": 1422.02783203125
+}

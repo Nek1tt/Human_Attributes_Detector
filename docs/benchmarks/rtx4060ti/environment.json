@@ -1,0 +1,32 @@
+{
+  "baseline_commit": "798f89b7ec36add666748213ac444b372db61e0a",
+  "runtime_change": "Initialize CUDA before reset_peak_memory_stats in a fresh process",
+  "python": "3.12.10",
+  "platform": "Windows-11-10.0.26200-SP0",
+  "torch": "2.8.0+cu128",
+  "torch_cuda": "12.8",
+  "onnxruntime": "1.26.0",
+  "opencv": "4.14.0",
+  "detector": {
+    "original_filename": "yolov8s_576x1024_v2.onnx",
+    "license_metadata": "AGPL-3.0",
+    "input_shape": [1, 3, 576, 1024],
+    "output_classes": ["person"],
+    "redistributed": false,
+    "reason": "Custom training provenance and corresponding source are unavailable"
+  },
+  "files": {
+    "var/benchmark/vtest.avi": {
+      "size": 8131690,
+      "sha256": "45cddc9490be69345cbdab64ca583be65987e864ca408038e648db99e10516cf"
+    },
+    "models/yolo.onnx": {
+      "size": 44805580,
+      "sha256": "c0d4889317191548e8c18a31b4b91f8d2b28842102eebe4523f9f1593a9ea933"
+    },
+    "scripts/check_peta_video.py": {
+      "size": 4233,
+      "sha256": "67dcc5f1a0825f50982631ba3026d87c1cff006a5875d002f33e3ed5a56155cf"
+    }
+  }
+}
