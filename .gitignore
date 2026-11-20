@@ -37,6 +37,14 @@ models/*
 !models/*.dvc
 /plots/*
 !/plots/results/
+!/plots/original-resnet-standard/
+!/plots/original-resnet-balanced/
+!/plots/original-transformer-standard/
+!/plots/original-transformer-balanced/
+!/plots/original-transformer-refined/
+!/plots/original-experiments.json
+!/plots/original-resources.json
+/plots/original-*/completed.json
 /data/market/
 /data/peta_embeddings/
 /.dvc/cache/

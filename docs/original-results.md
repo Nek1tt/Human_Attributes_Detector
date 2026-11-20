@@ -48,6 +48,20 @@ Macro F1 — среднее F1 по классам атрибута, затем 
 Графики показывают обучение двух вариантов standard, выбранных по validation accuracy.
 В JSON для каждого класса приведены precision, recall, F1, support и матрица ошибок.
 
+Сохранены исходные журналы пяти экспериментов:
+
+- [ResNet standard](../plots/original-resnet-standard/training/version_0/);
+- [ResNet balanced](../plots/original-resnet-balanced/training/version_0/);
+- [Transformer standard](../plots/original-transformer-standard/training/version_0/);
+- [Transformer balanced](../plots/original-transformer-balanced/training/version_0/);
+- [Transformer refined](../plots/original-transformer-refined/training/version_0/).
+
+Каждый каталог содержит `metrics.csv`, `config.yaml`, `hparams.yaml`,
+`code-version.txt` и три графика. Версия кода и признак `git_dirty` относятся
+к моменту обучения и сохранены без изменений. Итоги запусков собраны в
+[original-experiments.json](../plots/original-experiments.json), замеры батчей
+и оценка ресурсов — в [original-resources.json](../plots/original-resources.json).
+
 | Модель      | Loss                                          | Accuracy                                              | Macro F1                                              | Отчёт на test                                  |
 | ----------- | --------------------------------------------- | ----------------------------------------------------- | ----------------------------------------------------- | ---------------------------------------------- |
 | ResNet50    | [Loss](../plots/results/resnet/loss.png)      | [Accuracy](../plots/results/resnet/accuracy.png)      | [Macro F1](../plots/results/resnet/macro_f1.png)      | [JSON](../plots/results/resnet/test.json)      |

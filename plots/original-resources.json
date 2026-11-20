@@ -1,0 +1,49 @@
+{
+  "gpu": "NVIDIA GeForce RTX 4060 Ti",
+  "free_disk_bytes": 27244281856,
+  "epochs_per_stage": 4,
+  "measured_batches": 2,
+  "stages": {
+    "nine_resnet50": {
+      "batch_size": 8,
+      "train_images": 11060,
+      "validation_images": 3887,
+      "train_batch": {
+        "median_seconds": 0.49982749999617226,
+        "mean_seconds": 0.49982749999617226
+      },
+      "validation_batch": {
+        "median_seconds": 0.1667538500041701,
+        "mean_seconds": 0.1667538500041701
+      },
+      "seconds_per_epoch": 772.3038035967329,
+      "estimated_stage_seconds": 3089.2152143869316,
+      "peak_allocated_bytes": 6689212416,
+      "peak_reserved_bytes": 6765412352,
+      "weights_bytes": 942741180
+    },
+    "original_transformer": {
+      "batch_size": 32,
+      "train_images": 11060,
+      "validation_images": 3887,
+      "train_batch": {
+        "median_seconds": 0.0882835500233341,
+        "mean_seconds": 0.0882835500233341
+      },
+      "validation_batch": {
+        "median_seconds": 0.023960249993251637,
+        "mean_seconds": 0.023960249993251637
+      },
+      "seconds_per_epoch": 33.4692588072503,
+      "estimated_stage_seconds": 133.8770352290012,
+      "peak_allocated_bytes": 1294960640,
+      "peak_reserved_bytes": 1375731712,
+      "weights_bytes": 199348440
+    }
+  },
+  "estimated_training_seconds": 6580.061534460867,
+  "additional_disk_peak_bytes": 6599188260,
+  "note": "Two ResNet experiments and three Transformer stages; embeddings are prepared separately",
+  "embedding_bytes": 8497463424,
+  "visual_weights_bytes": 972874056
+}
