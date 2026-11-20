@@ -33,10 +33,6 @@ gpu = [
     "torch==2.8.0",
     "torchvision==0.23.0",
 ]
-bot = [
-    "httpx>=0.28,<1",
-    "python-telegram-bot>=22.8,<23",
-]
 dev = [
     "pre-commit>=4,<5",
     "black==25.1.0",
@@ -62,7 +58,6 @@ vision = [
 [project.scripts]
 had = "silhouette_detector.commands:main"
 had-api = "silhouette_detector.app:main"
-had-bot = "silhouette_detector.bot:main"
 
 [tool.setuptools.packages.find]
 where = ["src", "."]

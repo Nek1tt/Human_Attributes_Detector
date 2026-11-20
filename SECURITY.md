@@ -1,7 +1,7 @@
 # Security policy
 
 - Never commit Telegram tokens, API keys, model-hub tokens, private video, or `.env` files.
-- Revoke the Telegram token present in the legacy Git history before running the bot.
+- Revoke the Telegram token present in the legacy Git history.
 - Network access requires a `HAD_API_KEY` of at least 24 characters. Without a key, only loopback
   clients are accepted.
 - Download the MiniCPM visual encoder with `had original-download`. The downloader uses a
