@@ -251,3 +251,16 @@ uv run --no-sync python scripts/check_project.py
 ```bash
 uv run --no-sync python scripts/check_peta_video.py --video person.mp4 --yolo models/yolo.onnx --checkpoint models/original_transformer_peta.pt --device cuda
 ```
+
+Для сравнения моделей на одном видео запустите из PowerShell в GPU-окружении:
+
+```powershell
+New-Item -ItemType Directory -Force var/benchmark | Out-Null
+curl.exe -fL https://raw.githubusercontent.com/opencv/opencv/4.10.0/samples/data/vtest.avi -o var/benchmark/vtest.avi
+foreach ($model in 'resnet', 'transformer') {
+    uv run --no-sync python scripts/check_peta_video.py --video var/benchmark/vtest.avi --yolo models/yolo.onnx --checkpoint "models/original_${model}_peta.pt" --device cuda --output "var/benchmark/$model"
+    if ($LASTEXITCODE -ne 0) { throw "Video check failed for $model" }
+}
+```
+
+В каждом каталоге результата появится `benchmark.json`. Время в секундах включает чтение видео, детекцию на CPU, трекинг, классификацию и запись MP4 и JSONL. Загрузка моделей выполняется до запуска таймера. Пик памяти показывает объём видеопамяти, занятой тензорами PyTorch, включая веса модели. Каждый классификатор запускается в отдельном процессе.

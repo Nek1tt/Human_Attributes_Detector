@@ -2,13 +2,16 @@
 
 import json
 from pathlib import Path
+from time import perf_counter
 
 import click
 import cv2
+import torch
 
 from silhouette_detector.attribute_service import AttributeService
 from silhouette_detector.attributes.factory import create_attribute_backend
 from silhouette_detector.detection import YoloOnnxDetector
+from silhouette_detector.device import resolve_torch_device
 from silhouette_detector.peta_data import PETA_LABELS
 from silhouette_detector.pipeline import VideoProcessor
 from silhouette_detector.settings import Settings
@@ -27,6 +30,10 @@ from silhouette_detector.settings import Settings
 def main(video, yolo, checkpoint, device, output):
     settings = Settings(attribute_backend="peta", attribute_checkpoint=checkpoint, device=device)
     settings.validate()
+    device = resolve_torch_device(device)
+    cuda = device.startswith("cuda")
+    if cuda:
+        torch.cuda.reset_peak_memory_stats(device)
     backend = create_attribute_backend(settings)
     if tuple(backend.model.labels) != tuple(PETA_LABELS):
         raise ValueError("Use a PETA checkpoint with nine attributes")
@@ -45,7 +52,13 @@ def main(video, yolo, checkpoint, device, output):
     video_output = output / "result.mp4"
     metadata_output = output / "result.jsonl"
     try:
+        if cuda:
+            torch.cuda.synchronize(device)
+        start = perf_counter()
         processor.process(video, video_output, metadata_output, "peta-check")
+        if cuda:
+            torch.cuda.synchronize(device)
+        elapsed = perf_counter() - start
     finally:
         service.close()
     rows = [json.loads(line) for line in metadata_output.read_text(encoding="utf-8").splitlines()]
@@ -65,6 +78,23 @@ def main(video, yolo, checkpoint, device, output):
     capture.release()
     if not readable:
         raise ValueError("Output video is not readable")
+    metrics = {
+        "video": video.name,
+        "checkpoint": checkpoint.name,
+        "classifier_device": device,
+        "gpu": torch.cuda.get_device_name(device) if cuda else None,
+        "detector_device": "cpu",
+        "target_fps": processor.target_fps,
+        "processed_frames": len(rows),
+        "person_records": len(people),
+        "processing_seconds": elapsed,
+        "peak_torch_allocated_mib": (
+            torch.cuda.max_memory_allocated(device) / 2**20 if cuda else None
+        ),
+    }
+    report = json.dumps(metrics, indent=2)
+    (output / "benchmark.json").write_text(report + "\n", encoding="utf-8")
+    print(report)
     print(
         f"Video: {video_output}; frames={len(rows)}; person_records={len(people)}; "
         "nine attributes verified"
