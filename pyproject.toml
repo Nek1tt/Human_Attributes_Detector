@@ -34,6 +34,7 @@ gpu = [
     "torchvision==0.23.0",
 ]
 dev = [
+    "uv==0.13.9",
     "pre-commit>=4,<5",
     "black==25.1.0",
     "isort==6.0.1",

@@ -48,21 +48,43 @@ FastAPI принимает видео и возвращает идентифик
 
 ## Setup
 
-Нужны Git, Python 3.11 или 3.12 и [uv](https://docs.astral.sh/uv/).
-Все команды выполняются из корня репозитория.
+Нужны Git и Python 3.11 или 3.12. Все команды выполняются из корня репозитория
+в активированном виртуальном окружении. Для NVIDIA GPU используется CUDA 12.8.
 
-```bash
+```powershell
 git clone --branch detector-remaster --recurse-submodules https://github.com/Nek1tt/Human_Attributes_Detector.git
 cd Human_Attributes_Detector
-python -m pip install uv
-uv sync --locked --extra gpu --extra train --extra dev --extra vision --extra api --extra export
-uv run --no-sync pre-commit install
-uv run --no-sync pre-commit run -a
+python -m venv .venv
+.\.venv\Scripts\Activate.ps1
+python -m pip install --upgrade pip
+python -m pip install -r requirements.txt
+pre-commit install
+pre-commit run -a
 ```
 
-Для обучения используется NVIDIA GPU. Для CPU-инференса ResNet вместо GPU/vision
-достаточно `uv sync --locked --extra cpu --extra train --extra dev --extra export --extra api`.
-Версии зависимостей закреплены в `uv.lock`.
+В Linux окружение активируется командой `source .venv/bin/activate` вместо
+PowerShell-команды активации. Установка через `pip` одинакова.
+
+Для CPU-инференса и проверок ResNet установите в новом окружении CPU-профиль:
+
+```bash
+python -m pip install -r requirements-cpu.txt
+```
+
+`requirements.txt` содержит GPU-зависимости для обеих моделей, обучения, API и
+проверок. `requirements-cpu.txt` содержит CPU-зависимости ResNet и проверок.
+Минимальные профили API в `requirements/api-cpu.txt` и `requirements/api-gpu.txt`
+используются в Dockerfile. Каждый профиль также устанавливает сам пакет проекта.
+
+Версии в requirements закреплены и выгружены из `uv.lock`; зависимости остаются
+под управлением [uv](https://docs.astral.sh/uv/) и `pyproject.toml`.
+После изменения зависимостей разработчик обновляет lockfile и выполняет:
+
+```bash
+uv lock
+python scripts/export_requirements.py
+python scripts/export_requirements.py --check
+```
 
 ## Готовые модели
 
@@ -71,13 +93,11 @@ uv run --no-sync pre-commit run -a
 Релиз содержит оба checkpoint, два отчёта `benchmark.json` и описание среды замеров.
 Размер и SHA-256 весов закреплены в [манифесте](docs/release-weights.json).
 
-Первый запуск на NVIDIA GPU после клонирования репозитория:
+Загрузка готовых моделей после установки зависимостей из Setup:
 
 ```powershell
-python -m pip install uv
-uv sync --locked --extra gpu --extra train --extra dev --extra vision --extra api --extra export
-uv run --no-sync python scripts/download_release_weights.py
-uv run --no-sync had original-download
+python scripts/download_release_weights.py
+had original-download
 ```
 
 Загрузчик проверяет SHA-256 и сохраняет существующие файлы с другим содержимым.
@@ -99,7 +119,7 @@ Transformer использует отдельно загружаемый виз�
 двух моделей в корне проекта. Восстановить файлы можно одной командой:
 
 ```bash
-uv run --no-sync dvc pull models/original_resnet_peta.pt.dvc models/original_transformer_peta.pt.dvc
+dvc pull models/original_resnet_peta.pt.dvc models/original_transformer_peta.pt.dvc
 ```
 
 Чтобы подготовить для преподавателя хранилище только с этими весами, на машине
@@ -107,8 +127,8 @@ uv run --no-sync dvc pull models/original_resnet_peta.pt.dvc models/original_tra
 и при получении поместите его в корень клона под именем `.dvc-storage`.
 
 ```bash
-uv run --no-sync dvc remote add --local -f course dist/course-weights
-uv run --no-sync dvc push -r course models/original_resnet_peta.pt.dvc models/original_transformer_peta.pt.dvc
+dvc remote add --local -f course dist/course-weights
+dvc push -r course models/original_resnet_peta.pt.dvc models/original_transformer_peta.pt.dvc
 ```
 
 ResNet50 после этого готов к предсказанию на кропах. Для Transformer отдельно
@@ -116,7 +136,7 @@ ResNet50 после этого готов к предсказанию на кр�
 в `models/original-minicpm-visual/` (около 0.91 ГиБ):
 
 ```bash
-uv run --no-sync had original-download
+had original-download
 ```
 
 Если DVC-хранилище недоступно, классификаторы можно обучить на PETA по инструкции ниже.
@@ -126,26 +146,26 @@ uv run --no-sync had original-download
 В отдельном терминале запустить MLflow:
 
 ```bash
-uv run --no-sync mlflow server --host 127.0.0.1 --port 8080 --workers 1 --backend-store-uri sqlite:///var/mlflow.db --default-artifact-root ./var/mlartifacts
+mlflow server --host 127.0.0.1 --port 8080 --workers 1 --backend-store-uri sqlite:///var/mlflow.db --default-artifact-root ./var/mlartifacts
 ```
 
 Скачать PETA для обучения:
 
 ```bash
-uv run --no-sync had download
+had download
 ```
 
 Для обучения Transformer дополнительно подготовить эмбеддинги:
 
 ```bash
-uv run --no-sync had original-download
-uv run --no-sync had original-extract
+had original-download
+had original-extract
 ```
 
 Два варианта обучения каждой исходной архитектуры:
 
 ```bash
-uv run --no-sync python scripts/train_original.py --skip-extraction
+python scripts/train_original.py --skip-extraction
 ```
 
 Для воспроизведения опубликованных метрик нужны прежние веса автора.
@@ -161,13 +181,13 @@ uv run --no-sync python scripts/train_original.py --skip-extraction
 Один запуск ResNet с настройками по умолчанию:
 
 ```bash
-uv run --no-sync had train
+had train
 ```
 
 Один запуск Transformer:
 
 ```bash
-uv run --no-sync had train model=original_transformer training.batch_size=32
+had train model=original_transformer training.batch_size=32
 ```
 
 [Lightning](https://lightning.ai/docs/pytorch/stable/) выполняет обучение и validation.
@@ -186,7 +206,7 @@ uv run --no-sync had train model=original_transformer training.batch_size=32
 Экспорт ResNet в ONNX и сравнение с PyTorch для batch 1 и 2:
 
 ```bash
-uv run --no-sync had export
+had export
 ```
 
 Вход `[batch, 3, 224, 224]`, выход `[batch, 53]`.
@@ -196,9 +216,9 @@ uv run --no-sync had export
 MLflow Serving принимает обычные кропы и включает извлечение признаков:
 
 ```bash
-uv run --no-sync had package model=original_transformer
-uv run --no-sync mlflow models serve -m var/serving-model --env-manager local --host 127.0.0.1 --port 5001
-uv run --no-sync python scripts/request_prediction.py person.jpg
+had package model=original_transformer
+mlflow models serve -m var/serving-model --env-manager local --host 127.0.0.1 --port 5001
+python scripts/request_prediction.py person.jpg
 ```
 
 По умолчанию сервер использует CPU. Для CUDA перед запуском сервера задайте
@@ -209,11 +229,11 @@ uv run --no-sync python scripts/request_prediction.py person.jpg
 При установленных TensorRT и Triton для ResNet:
 
 ```bash
-uv run --no-sync had export
-uv run --no-sync had tensorrt production.max_batch_size=8
-uv run --no-sync had triton
+had export
+had tensorrt production.max_batch_size=8
+had triton
 tritonserver --model-repository=var/triton-models
-uv run --no-sync python scripts/request_triton.py person.jpg
+python scripts/request_triton.py person.jpg
 ```
 
 ## Infer
@@ -221,14 +241,14 @@ uv run --no-sync python scripts/request_triton.py person.jpg
 Предсказание ResNet на кропе и на первых десяти тестовых изображениях:
 
 ```bash
-uv run --no-sync had infer inference.image=person.jpg
-uv run --no-sync had infer inference.limit=10
+had infer inference.image=person.jpg
+had infer inference.limit=10
 ```
 
 MiniCPM + Transformer:
 
 ```bash
-uv run --no-sync had infer model=original_transformer inference.device=cuda inference.image=person.jpg
+had infer model=original_transformer inference.device=cuda inference.image=person.jpg
 ```
 
 Результат — `var/predictions.jsonl`, девять атрибутов на английском.
@@ -237,8 +257,8 @@ uv run --no-sync had infer model=original_transformer inference.device=cuda infe
 Оценка на тесте:
 
 ```bash
-uv run --no-sync had evaluate inference.device=cuda inference.batch_size=8 inference.output=var/resnet-test.json
-uv run --no-sync had evaluate model=original_transformer inference.device=cuda inference.output=var/transformer-test.json
+had evaluate inference.device=cuda inference.batch_size=8 inference.output=var/resnet-test.json
+had evaluate model=original_transformer inference.device=cuda inference.output=var/transformer-test.json
 ```
 
 Отчёт содержит accuracy, precision, recall, F1, support и confusion matrix каждого класса.
@@ -250,7 +270,7 @@ $env:HAD_ATTRIBUTE_BACKEND = "peta"
 $env:HAD_ATTRIBUTE_CHECKPOINT = "models/original_transformer_peta.pt"
 $env:HAD_DETECTOR_MODEL = "models/yolo.onnx"
 $env:HAD_DEVICE = "cuda"
-uv run --no-sync had-api
+had-api
 ```
 
 Для видео отдельно положите ONNX-веса детектора людей по пути `HAD_DETECTOR_MODEL`.
@@ -266,9 +286,9 @@ curl -o result.mp4 http://127.0.0.1:8000/api/v1/jobs/JOB_ID/result
 ## Самостоятельные проверки
 
 ```bash
-uv run --no-sync pre-commit run -a
-uv run --no-sync python -m unittest discover -s tests -v
-uv run --no-sync python scripts/check_project.py
+pre-commit run -a
+python -m unittest discover -s tests -v
+python scripts/check_project.py
 ```
 
 Для общего скрипта нужен запущенный MLflow. CPU-окружение выполняет короткое
@@ -277,7 +297,7 @@ uv run --no-sync python scripts/check_project.py
 Видеопайплайн:
 
 ```bash
-uv run --no-sync python scripts/check_peta_video.py --video person.mp4 --yolo models/yolo.onnx --checkpoint models/original_transformer_peta.pt --device cuda
+python scripts/check_peta_video.py --video person.mp4 --yolo models/yolo.onnx --checkpoint models/original_transformer_peta.pt --device cuda
 ```
 
 Для сравнения моделей на одном видео запустите из PowerShell в GPU-окружении:
@@ -286,7 +306,7 @@ uv run --no-sync python scripts/check_peta_video.py --video person.mp4 --yolo mo
 New-Item -ItemType Directory -Force var/benchmark | Out-Null
 curl.exe -fL https://raw.githubusercontent.com/opencv/opencv/4.10.0/samples/data/vtest.avi -o var/benchmark/vtest.avi
 foreach ($model in 'resnet', 'transformer') {
-    uv run --no-sync python scripts/check_peta_video.py --video var/benchmark/vtest.avi --yolo models/yolo.onnx --checkpoint "models/original_${model}_peta.pt" --device cuda --output "var/benchmark/$model"
+    python scripts/check_peta_video.py --video var/benchmark/vtest.avi --yolo models/yolo.onnx --checkpoint "models/original_${model}_peta.pt" --device cuda --output "var/benchmark/$model"
     if ($LASTEXITCODE -ne 0) { throw "Video check failed for $model" }
 }
 ```

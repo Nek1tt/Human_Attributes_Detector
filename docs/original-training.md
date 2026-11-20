@@ -29,9 +29,9 @@
 Команды Setup и запуск MLflow приведены в README.
 
 ```bash
-uv run --no-sync had download
-uv run --no-sync had original-download
-uv run --no-sync had original-extract
+had download
+had original-download
+had original-extract
 ```
 
 Исходные визуальные компоненты MiniCPM INT4 скачиваются из ревизии
@@ -48,7 +48,7 @@ VPM и Resampler работают с исходными весами BF16; INT4 
 ## Эксперименты
 
 ```bash
-uv run --no-sync python scripts/train_original.py --skip-extraction --epochs 4
+python scripts/train_original.py --skip-extraction --epochs 4
 ```
 
 Для старых весов передайте `--resnet-weights` и `--transformer-weights`.
