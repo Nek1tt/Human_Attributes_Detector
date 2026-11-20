@@ -1,4 +1,4 @@
-"""Download the pinned release classifiers and verify their SHA-256 identities."""
+"""Download the released classifiers and detector and verify their SHA-256 identities."""
 
 import hashlib
 import json

@@ -1,0 +1,30 @@
+{
+  "path": "models/yolo.onnx",
+  "original_filename": "yolov8s_576x1024_v2.onnx",
+  "size": 44805580,
+  "sha256": "c0d4889317191548e8c18a31b4b91f8d2b28842102eebe4523f9f1593a9ea933",
+  "input_shape": [1, 3, 576, 1024],
+  "classes": ["person"],
+  "license": "AGPL-3.0",
+  "license_file": "licenses/yolo-agpl-3.0.txt",
+  "upstream_source": "https://github.com/ultralytics/ultralytics/tree/v8.3.48",
+  "upstream_license": "https://github.com/ultralytics/ultralytics/blob/v8.3.48/LICENSE",
+  "producer": {
+    "name": "pytorch",
+    "version": "2.6.0"
+  },
+  "onnx_metadata": {
+    "description": "Ultralytics best model trained on ./dataset.yaml",
+    "author": "Ultralytics",
+    "date": "2024-12-16T03:57:47.700544",
+    "version": "8.3.48",
+    "license": "AGPL-3.0 License (https://ultralytics.com/license)",
+    "docs": "https://docs.ultralytics.com",
+    "stride": "32",
+    "task": "detect",
+    "batch": "1",
+    "imgsz": "[576, 1024]",
+    "names": "{0: 'person'}"
+  },
+  "provenance": "Existing ONNX model supplied by the repository owner, preserved byte for byte. The original training checkpoint, arguments and dataset configuration were not present in the supplied working directories."
+}

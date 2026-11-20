@@ -35,6 +35,7 @@ videos/
 *.webm
 models/*
 !models/*.dvc
+!models/yolo.onnx
 /plots/*
 !/plots/results/
 !/plots/original-resnet-standard/

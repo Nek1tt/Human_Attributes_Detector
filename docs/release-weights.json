@@ -11,6 +11,11 @@
       "name": "original_transformer_peta.pt",
       "size": 199401739,
       "sha256": "57ee71e1294c37c945eada941d320b658cfd2ae848e5ac8f82ff09f36e115ea1"
+    },
+    {
+      "name": "yolo.onnx",
+      "size": 44805580,
+      "sha256": "c0d4889317191548e8c18a31b4b91f8d2b28842102eebe4523f9f1593a9ea933"
     }
   ]
 }
