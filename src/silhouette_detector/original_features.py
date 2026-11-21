@@ -89,7 +89,7 @@ def extract_original_features(config):
     metadata["tokens_sha256"] = file_hash(data_path)
     metadata_path.write_text(json.dumps(metadata, indent=2) + "\n", encoding="utf-8")
     dvc_command("add", root)
-    dvc_command("push", str(root) + ".dvc")
+    dvc_command("push", "-r", "local", str(root) + ".dvc")
     return root
 
 
@@ -98,7 +98,7 @@ def ensure_embeddings(config):
     pointer = Path(str(root) + ".dvc")
     if pointer.exists():
         try:
-            dvc_command("pull", pointer)
+            dvc_command("pull", "-r", "local", pointer)
         except subprocess.CalledProcessError:
             print(
                 "Cached embeddings are unavailable; rebuilding from the public PETA images",

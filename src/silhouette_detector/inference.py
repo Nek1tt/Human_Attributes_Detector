@@ -13,7 +13,7 @@ from .peta_data import PetaImageDataset, dvc_command, ensure_data
 def ensure_checkpoint(checkpoint):
     checkpoint = Path(checkpoint)
     pointer = Path(str(checkpoint) + ".dvc")
-    if pointer.exists():
+    if not checkpoint.is_file() and pointer.exists():
         dvc_command("pull", pointer)
     if not checkpoint.is_file():
         raise FileNotFoundError(f"Train the model first or restore the checkpoint: {checkpoint}")

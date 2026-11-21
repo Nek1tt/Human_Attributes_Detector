@@ -10,7 +10,6 @@ repos:
       - id: check-merge-conflict
       - id: check-added-large-files
         args: [--maxkb=700]
-        exclude: ^models/yolo\.onnx$
   - repo: https://github.com/psf/black
     rev: 25.1.0
     hooks:

@@ -1,4 +1,6 @@
 [core]
-    remote = local
+    remote = weights
 ['remote "local"']
     url = ../.dvc-storage
+['remote "weights"']
+    url = https://huggingface.co/Nek1tt/human-attributes-detector-weights/resolve/main

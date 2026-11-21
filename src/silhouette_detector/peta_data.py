@@ -163,9 +163,9 @@ def download_peta(config):
     prepare_peta_records(root, config)
     if not Path(".dvc").exists():
         dvc_command("init")
-    dvc_command("remote", "add", "--force", "--default", "local", config.remote)
+    dvc_command("remote", "add", "--force", "--local", "local", config.remote)
     dvc_command("add", root)
-    dvc_command("push", str(root) + ".dvc")
+    dvc_command("push", "-r", "local", str(root) + ".dvc")
     return root
 
 
@@ -194,10 +194,10 @@ def ensure_data(config):
     if not pointer.exists() or not Path(config.remote).exists():
         download_peta(config)
     try:
-        dvc_command("pull", pointer)
+        dvc_command("pull", "-r", "local", pointer)
     except subprocess.CalledProcessError:
         download_peta(config)
-        dvc_command("pull", pointer)
+        dvc_command("pull", "-r", "local", pointer)
     return root
 
 

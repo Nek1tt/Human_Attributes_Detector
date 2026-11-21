@@ -42,7 +42,7 @@ def import_weights(source, destination):
         destination,
     )
     dvc_command("add", destination)
-    dvc_command("push", str(destination) + ".dvc")
+    dvc_command("push", "-r", "local", str(destination) + ".dvc")
     return str(destination)
 
 
@@ -68,7 +68,7 @@ def publish_best(selected, candidates):
     if source != destination:
         shutil.copyfile(source, destination)
         dvc_command("add", destination)
-        dvc_command("push", str(destination) + ".dvc")
+        dvc_command("push", "-r", "local", str(destination) + ".dvc")
     keep_hash = yaml.safe_load(Path(str(destination) + ".dvc").read_text())["outs"][0]["md5"]
     root = Path.cwd().resolve()
     for row in candidates:
@@ -132,7 +132,7 @@ def main(
                     for directory in [".dvc/cache/files/md5", ".dvc-storage/files/md5"]
                 ]
                 if any(path.exists() for path in objects):
-                    dvc_command("pull", pointer)
+                    dvc_command("pull", "-r", "local", pointer)
             initial[name] = str(imported) if imported.exists() else None
             if initial[name] is None:
                 print(f"No old {name} weights: using public initialization", flush=True)

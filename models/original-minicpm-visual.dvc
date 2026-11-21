@@ -1,0 +1,6 @@
+outs:
+- md5: e7d72c13ffcf159cf17cde3efec7ee94.dir
+  size: 973113877
+  nfiles: 8
+  hash: md5
+  path: original-minicpm-visual

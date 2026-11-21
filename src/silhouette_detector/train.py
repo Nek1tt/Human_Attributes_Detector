@@ -292,6 +292,6 @@ def train(config):
     )
     mlflow_logger.experiment.log_artifacts(mlflow_logger.run_id, str(plots))
     dvc_command("add", output)
-    dvc_command("push", str(output) + ".dvc")
+    dvc_command("push", "-r", "local", str(output) + ".dvc")
     Path(checkpoint.best_model_path).unlink(missing_ok=True)
     print(f"Model: {output}; plots: {plots}; MLflow run: {mlflow_logger.run_id}")

@@ -88,61 +88,26 @@ python scripts/export_requirements.py --check
 
 ## Готовые модели
 
-Финальные классификаторы доступны в
-[GitHub Release detector-remaster-2026-11-20](https://github.com/Nek1tt/Human_Attributes_Detector/releases/tag/detector-remaster-2026-11-20).
-Релиз содержит оба checkpoint, детектор `yolo.onnx`, два отчёта `benchmark.json`
-и описание среды замеров.
-Размер и SHA-256 весов закреплены в [манифесте](docs/release-weights.json).
-
-Загрузка готовых моделей после установки зависимостей из Setup:
-
-```powershell
-python scripts/download_release_weights.py
-had original-download
-```
-
-Загрузчик проверяет SHA-256 и сохраняет существующие файлы с другим содержимым.
-Детектор `models/yolo.onnx` хранится прямо в ветке `detector-remaster` и загружается
-вместе с кодом при `git clone`. Загрузчик также проверяет его SHA-256 и может
-восстановить файл из релиза. В замерах использован этот же
-`yolov8s_576x1024_v2.onnx`: вход
-`[1, 3, 576, 1024]`, один класс `person`, SHA-256
-`c0d4889317191548e8c18a31b4b91f8d2b28842102eebe4523f9f1593a9ea933`.
-Метаданные детектора сохранены без изменений и указывают AGPL-3.0.
-В репозитории находятся [текст лицензии](licenses/yolo-agpl-3.0.txt) и
-[описание артефакта](docs/detector.json) со ссылкой на исходный код Ultralytics 8.3.48.
-
-После подготовки детектора запустите обе модели на одном видео командами
-из раздела «Самостоятельные проверки» ниже либо запустите API из раздела «Видео».
-Transformer использует отдельно загружаемый визуальный энкодер MiniCPM;
-он не входит в checkpoint классификатора и в файлы релиза.
-
-В `models/` лежат два DVC-указателя на обученные классификаторы. Для запуска готовых
-весов на новом компьютере понадобится копия каталога `.dvc-storage/` с объектами этих
-двух моделей в корне проекта. Восстановить файлы можно одной командой:
+После установки зависимостей выполните из корня клона:
 
 ```bash
-dvc pull models/original_resnet_peta.pt.dvc models/original_transformer_peta.pt.dvc
+dvc pull models/yolo.onnx.dvc models/original_resnet_peta.pt.dvc models/original_transformer_peta.pt.dvc models/original-minicpm-visual.dvc
 ```
 
-Чтобы подготовить для преподавателя хранилище только с этими весами, на машине
-с обученными моделями выполните команды ниже. Передайте каталог `dist/course-weights`
-и при получении поместите его в корень клона под именем `.dvc-storage`.
+DVC восстановит детектор `models/yolo.onnx`, классификаторы
+`models/original_resnet_peta.pt` и `models/original_transformer_peta.pt`,
+а также визуальный энкодер и конфигурацию MiniCPM в `models/original-minicpm-visual/`.
+Для этих файлов настроено публичное HTTP-хранилище на
+[Hugging Face](https://huggingface.co/Nek1tt/human-attributes-detector-weights).
+Размер загрузки около 2,16 ГБ. Датасет для обучения подготавливается отдельно командой
+`had download`. Обучение сохраняет собственные результаты в локальном DVC-хранилище.
 
-```bash
-dvc remote add --local -f course dist/course-weights
-dvc push -r course models/original_resnet_peta.pt.dvc models/original_transformer_peta.pt.dvc
-```
-
-ResNet50 после этого готов к предсказанию на кропах. Для Transformer отдельно
-загрузите визуальный энкодер MiniCPM из закреплённой ревизии Hugging Face
-в `models/original-minicpm-visual/` (около 0.91 ГиБ):
-
-```bash
-had original-download
-```
-
-Если DVC-хранилище недоступно, классификаторы можно обучить на PETA по инструкции ниже.
+Готовые экспорты классификаторов можно получить командой `had export` по инструкции ниже.
+Для YOLO сохранены [описание и SHA-256](docs/detector.json) и [лицензия](licenses/yolo-agpl-3.0.txt).
+Резервный источник детектора и классификаторов —
+[GitHub Release](https://github.com/Nek1tt/Human_Attributes_Detector/releases/tag/detector-remaster-2026-11-20)
+(`python scripts/download_release_weights.py`). Энкодер также можно подготовить из
+закреплённой ревизии MiniCPM командой `had original-download`.
 
 ## Train
 
@@ -276,7 +241,7 @@ $env:HAD_DEVICE = "cuda"
 had-api
 ```
 
-Для видео используется включённый в ветку `models/yolo.onnx`.
+Для видео используется загруженный через DVC `models/yolo.onnx`.
 `HAD_DETECTOR_MODEL` позволяет указать другой совместимый ONNX-детектор.
 Для ResNet укажите `models/original_resnet_peta.pt`, устройство CPU или CUDA.
 API возвращает девять атрибутов на русском. Для локального запуска без ключа запросы выглядят так. Если задан `HAD_API_KEY`, добавьте к каждому запросу заголовок `X-API-Key`.
