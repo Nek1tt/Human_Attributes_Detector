@@ -99,8 +99,6 @@ python scripts/download_release_weights.py
 энкодера MiniCPM в `models/original-minicpm-visual/`. Общий размер около 2,16 ГБ.
 Загрузчик проверяет размер и SHA-256 по [манифесту](docs/hf-weights.json).
 Существующие файлы с другой контрольной суммой сохраняются, загрузка останавливается.
-Резервный способ: `python scripts/download_release_weights.py --github` для детектора и
-классификаторов, затем `had original-download` для энкодера.
 Экспорт классификаторов в ONNX выполняется командой `had export`.
 [Происхождение YOLO](docs/detector.json) и [лицензия](licenses/yolo-agpl-3.0.txt).
 

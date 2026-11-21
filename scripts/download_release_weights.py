@@ -48,14 +48,9 @@ def download_asset(url, destination, asset):
 
 
 @click.command()
-@click.option("--github", is_flag=True, help="Use the legacy three-file GitHub release.")
-def main(github):
-    name = "release-weights.json" if github else "hf-weights.json"
-    manifest = json.loads((ROOT / "docs" / name).read_text(encoding="utf-8"))
-    if github:
-        base = f"https://github.com/{manifest['repository']}/releases/download/{manifest['tag']}/"
-    else:
-        base = f"https://huggingface.co/{manifest['repository']}/resolve/{manifest['revision']}/"
+def main():
+    manifest = json.loads((ROOT / "docs/hf-weights.json").read_text(encoding="utf-8"))
+    base = f"https://huggingface.co/{manifest['repository']}/resolve/{manifest['revision']}/"
     for asset in manifest["assets"]:
         download_asset(base + asset["name"], ROOT / "models" / asset["name"], asset)
 
