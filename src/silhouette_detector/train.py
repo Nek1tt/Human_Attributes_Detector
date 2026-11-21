@@ -19,7 +19,7 @@ from torch.utils.data import DataLoader
 from torchmetrics.classification import MulticlassF1Score
 
 from .model import build_model
-from .peta_data import ORIGINAL_PETA_LABELS, PetaImageDataset, dvc_command, ensure_data
+from .peta_data import ORIGINAL_PETA_LABELS, PetaImageDataset, ensure_data
 
 
 class LocalCheckpointIO(CheckpointIO):
@@ -291,7 +291,5 @@ def train(config):
         f"git_commit: {git_commit}\ngit_dirty: {git_dirty}\n", encoding="utf-8"
     )
     mlflow_logger.experiment.log_artifacts(mlflow_logger.run_id, str(plots))
-    dvc_command("add", output)
-    dvc_command("push", "-r", "local", str(output) + ".dvc")
     Path(checkpoint.best_model_path).unlink(missing_ok=True)
     print(f"Model: {output}; plots: {plots}; MLflow run: {mlflow_logger.run_id}")

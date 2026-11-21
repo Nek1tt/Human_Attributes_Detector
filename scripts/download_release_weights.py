@@ -1,10 +1,12 @@
-"""Download the released classifiers and detector and verify their SHA-256 identities."""
+"""Download the published inference models and verify their SHA-256 identities."""
 
 import hashlib
 import json
 import tempfile
 import urllib.request
 from pathlib import Path
+
+import click
 
 ROOT = Path(__file__).resolve().parents[1]
 
@@ -45,9 +47,15 @@ def download_asset(url, destination, asset):
             temporary.unlink(missing_ok=True)
 
 
-def main():
-    manifest = json.loads((ROOT / "docs/release-weights.json").read_text(encoding="utf-8"))
-    base = f"https://github.com/{manifest['repository']}/releases/download/{manifest['tag']}/"
+@click.command()
+@click.option("--github", is_flag=True, help="Use the legacy three-file GitHub release.")
+def main(github):
+    name = "release-weights.json" if github else "hf-weights.json"
+    manifest = json.loads((ROOT / "docs" / name).read_text(encoding="utf-8"))
+    if github:
+        base = f"https://github.com/{manifest['repository']}/releases/download/{manifest['tag']}/"
+    else:
+        base = f"https://huggingface.co/{manifest['repository']}/resolve/{manifest['revision']}/"
     for asset in manifest["assets"]:
         download_asset(base + asset["name"], ROOT / "models" / asset["name"], asset)
 

@@ -91,23 +91,18 @@ python scripts/export_requirements.py --check
 После установки зависимостей выполните из корня клона:
 
 ```bash
-dvc pull models/yolo.onnx.dvc models/original_resnet_peta.pt.dvc models/original_transformer_peta.pt.dvc models/original-minicpm-visual.dvc
+python scripts/download_release_weights.py
 ```
 
-DVC восстановит детектор `models/yolo.onnx`, классификаторы
-`models/original_resnet_peta.pt` и `models/original_transformer_peta.pt`,
-а также визуальный энкодер и конфигурацию MiniCPM в `models/original-minicpm-visual/`.
-Для этих файлов настроено публичное HTTP-хранилище на
-[Hugging Face](https://huggingface.co/Nek1tt/human-attributes-detector-weights).
-Размер загрузки около 2,16 ГБ. Датасет для обучения подготавливается отдельно командой
-`had download`. Обучение сохраняет собственные результаты в локальном DVC-хранилище.
-
-Готовые экспорты классификаторов можно получить командой `had export` по инструкции ниже.
-Для YOLO сохранены [описание и SHA-256](docs/detector.json) и [лицензия](licenses/yolo-agpl-3.0.txt).
-Резервный источник детектора и классификаторов —
-[GitHub Release](https://github.com/Nek1tt/Human_Attributes_Detector/releases/tag/detector-remaster-2026-11-20)
-(`python scripts/download_release_weights.py`). Энкодер также можно подготовить из
-закреплённой ревизии MiniCPM командой `had original-download`.
+Из [публичного репозитория моделей на Hugging Face](https://huggingface.co/Nek1tt/human-attributes-detector-weights)
+загружаются два классификатора, детектор `models/yolo.onnx` и восемь файлов
+энкодера MiniCPM в `models/original-minicpm-visual/`. Общий размер около 2,16 ГБ.
+Загрузчик проверяет размер и SHA-256 по [манифесту](docs/hf-weights.json).
+Существующие файлы с другой контрольной суммой сохраняются, загрузка останавливается.
+Резервный способ: `python scripts/download_release_weights.py --github` для детектора и
+классификаторов, затем `had original-download` для энкодера.
+Экспорт классификаторов в ONNX выполняется командой `had export`.
+[Происхождение YOLO](docs/detector.json) и [лицензия](licenses/yolo-agpl-3.0.txt).
 
 ## Train
 
@@ -162,7 +157,7 @@ had train model=original_transformer training.batch_size=32
 Ошибка — сумма CrossEntropy по девяти атрибутам, оптимизатор AdamW.
 [Hydra](https://hydra.cc/docs/intro/) управляет данными, обработкой, моделью и обучением.
 
-Данные, эмбеддинги и обученные классификаторы версионируются через DVC.
+Данные и эмбеддинги версионируются через DVC. Обученные классификаторы сохраняются в models/.
 
 ## Production preparation
 
@@ -241,7 +236,7 @@ $env:HAD_DEVICE = "cuda"
 had-api
 ```
 
-Для видео используется загруженный через DVC `models/yolo.onnx`.
+Для видео используется загруженный из репозитория моделей `models/yolo.onnx`.
 `HAD_DETECTOR_MODEL` позволяет указать другой совместимый ONNX-детектор.
 Для ResNet укажите `models/original_resnet_peta.pt`, устройство CPU или CUDA.
 API возвращает девять атрибутов на русском. Для локального запуска без ключа запросы выглядят так. Если задан `HAD_API_KEY`, добавьте к каждому запросу заголовок `X-API-Key`.

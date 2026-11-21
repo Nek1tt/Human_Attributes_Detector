@@ -1,5 +1,0 @@
-outs:
-- md5: 94b62c4c1ca286e9239099ceaec1fd2c
-  size: 943753597
-  hash: md5
-  path: original_resnet_peta.pt

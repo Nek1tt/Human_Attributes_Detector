@@ -9,10 +9,8 @@ from pathlib import Path
 
 import click
 import torch
-import yaml
 
 from silhouette_detector.original_visual import file_hash
-from silhouette_detector.peta_data import dvc_command
 
 
 def run(operation, *overrides):
@@ -29,8 +27,9 @@ def import_weights(source, destination):
         if payload["source_sha256"] != file_hash(source):
             raise ValueError(f"Different initial checkpoint already exists: {destination}")
         return str(destination)
-    if shutil.disk_usage(destination.parent).free < 3 * source.stat().st_size + 8 * 1024**3:
-        raise RuntimeError("Not enough space for initial weights, DVC copies and an 8 GiB reserve")
+    destination.parent.mkdir(parents=True, exist_ok=True)
+    if shutil.disk_usage(destination.parent).free < source.stat().st_size + 8 * 1024**3:
+        raise RuntimeError("Not enough space for initial weights and an 8 GiB reserve")
     payload = torch.load(source, map_location="cpu", weights_only=True, mmap=True)
     state = payload.get("model_state_dict", payload)
     torch.save(
@@ -41,8 +40,6 @@ def import_weights(source, destination):
         },
         destination,
     )
-    dvc_command("add", destination)
-    dvc_command("push", "-r", "local", str(destination) + ".dvc")
     return str(destination)
 
 
@@ -67,32 +64,12 @@ def publish_best(selected, candidates):
     source = Path(selected["checkpoint"])
     if source != destination:
         shutil.copyfile(source, destination)
-        dvc_command("add", destination)
-        dvc_command("push", "-r", "local", str(destination) + ".dvc")
-    keep_hash = yaml.safe_load(Path(str(destination) + ".dvc").read_text())["outs"][0]["md5"]
-    root = Path.cwd().resolve()
     for row in candidates:
         if row.get("checkpoint") and Path(row["checkpoint"]) != destination:
             checkpoint = Path(row["checkpoint"])
             if not checkpoint.name.startswith("original-") or checkpoint.parent != Path("models"):
                 raise ValueError("Refusing to remove a checkpoint outside this experiment")
-            pointer = Path(str(checkpoint) + ".dvc")
-            digest = yaml.safe_load(pointer.read_text())["outs"][0]["md5"]
-            checkpoint.unlink()
-            pointer.unlink()
-            referenced = {
-                item["md5"]
-                for path in Path("models").glob("*.dvc")
-                for item in yaml.safe_load(path.read_text())["outs"]
-            }
-            if digest != keep_hash and digest not in referenced:
-                for directory in [".dvc/cache/files/md5", ".dvc-storage/files/md5"]:
-                    cached = (root / directory / digest[:2] / digest[2:]).resolve()
-                    if not cached.is_relative_to(root):
-                        raise ValueError("Unsafe cache cleanup path")
-                    if cached.exists():
-                        cached.chmod(0o666)
-                        cached.unlink()
+            checkpoint.unlink(missing_ok=True)
         row["checkpoint"] = str(destination) if row["name"] == selected["name"] else None
         marker = Path(f"plots/{row['name']}/completed.json")
         marker.write_text(json.dumps(row, indent=2) + "\n", encoding="utf-8")
@@ -124,15 +101,6 @@ def main(
         if source:
             initial[name] = import_weights(source, imported)
         else:
-            pointer = Path(str(imported) + ".dvc")
-            if pointer.exists() and not imported.exists():
-                digest = yaml.safe_load(pointer.read_text())["outs"][0]["md5"]
-                objects = [
-                    Path(directory) / digest[:2] / digest[2:]
-                    for directory in [".dvc/cache/files/md5", ".dvc-storage/files/md5"]
-                ]
-                if any(path.exists() for path in objects):
-                    dvc_command("pull", "-r", "local", pointer)
             initial[name] = str(imported) if imported.exists() else None
             if initial[name] is None:
                 print(f"No old {name} weights: using public initialization", flush=True)

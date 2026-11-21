@@ -1,0 +1,61 @@
+{
+  "repository": "Nek1tt/human-attributes-detector-weights",
+  "revision": "main",
+  "assets": [
+    {
+      "name": "original_resnet_peta.pt",
+      "size": 943753597,
+      "sha256": "f2dc02ef903f52aabeebd014832664f17b9eb8d64422294c26e3ed4ab5be7563"
+    },
+    {
+      "name": "original_transformer_peta.pt",
+      "size": 199401739,
+      "sha256": "57ee71e1294c37c945eada941d320b658cfd2ae848e5ac8f82ff09f36e115ea1"
+    },
+    {
+      "name": "yolo.onnx",
+      "size": 44805580,
+      "sha256": "c0d4889317191548e8c18a31b4b91f8d2b28842102eebe4523f9f1593a9ea933"
+    },
+    {
+      "name": "original-minicpm-visual/config.json",
+      "size": 3786,
+      "sha256": "6b126bd590987009358195a6c9658b8876099b6f3c214cb5fd0e8379584443d6"
+    },
+    {
+      "name": "original-minicpm-visual/image_processing_minicpmv.py",
+      "size": 16731,
+      "sha256": "be645337bd25811ae1f86e3aaa21fa5b555719870f5612004b4a67357148fe1f"
+    },
+    {
+      "name": "original-minicpm-visual/modeling_minicpmo.py",
+      "size": 140149,
+      "sha256": "706c968bc8f8d43652c555c7088b3869a35b4f973491227ed1481a5896160783"
+    },
+    {
+      "name": "original-minicpm-visual/modeling_navit_siglip.py",
+      "size": 42099,
+      "sha256": "f0a3e2fb52824ae06e30973c9e92abfdb441d0585674fa0cfc779bca4820c223"
+    },
+    {
+      "name": "original-minicpm-visual/preprocessor_config.json",
+      "size": 714,
+      "sha256": "2d9b0069b9bc2804df682fb29c12a2c193cfdf4fd87966e5364ba6e4d38de20c"
+    },
+    {
+      "name": "original-minicpm-visual/resampler.py",
+      "size": 35635,
+      "sha256": "1b304c316358b142c60ee546fe46a05c5c2f2fa6ba295662445db1093ea73e7b"
+    },
+    {
+      "name": "original-minicpm-visual/visual-manifest.json",
+      "size": 707,
+      "sha256": "d7d71d046cf4432c259aa5c7a0dfa0ba6925a051b880751e0ebafde417803894"
+    },
+    {
+      "name": "original-minicpm-visual/visual.safetensors",
+      "size": 972874056,
+      "sha256": "218b95d60b9705870b40a49e60234939ab68bee89b9283d80821811ce2c1ce66"
+    }
+  ]
+}

@@ -7,16 +7,15 @@ import torch
 from torch.utils.data import DataLoader
 
 from .model import decode, load_model, predict_image
-from .peta_data import PetaImageDataset, dvc_command, ensure_data
+from .peta_data import PetaImageDataset, ensure_data
 
 
 def ensure_checkpoint(checkpoint):
     checkpoint = Path(checkpoint)
-    pointer = Path(str(checkpoint) + ".dvc")
-    if not checkpoint.is_file() and pointer.exists():
-        dvc_command("pull", pointer)
     if not checkpoint.is_file():
-        raise FileNotFoundError(f"Train the model first or restore the checkpoint: {checkpoint}")
+        raise FileNotFoundError(
+            f"Run python scripts/download_release_weights.py or train the model: {checkpoint}"
+        )
     return checkpoint
 
 

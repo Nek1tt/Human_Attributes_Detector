@@ -1,5 +1,0 @@
-outs:
-- md5: b9f56985eb041e1aaaea87b3e5fdc9da
-  size: 199401739
-  hash: md5
-  path: original_transformer_peta.pt
